@@ -1,0 +1,76 @@
+###########################################################
+# Input parameters required to drive AHRD snakemake suite
+###########################################################
+
+# provide path to PROTEIN fasta file
+fasta: Aesculus_hippocastanum.Trinity.fasta.transdecoder.pep.fa
+
+# number of protein to process in a chunk
+chunk_size: 500
+
+# provide protein databases
+# below reference protein header is formatted to have the functional description parsable by AHRD config file (ahrd_config)
+# So, when using this pipeline, please change the reference protein functional description line
+databases:
+    reference: /ei/workarea/group-pb/CB-PPBFX-752_PIP-2315_Anne_Osbourn_JIC_AO_ENQ-3405_A_01_ext/Analysis/ahrd-3.3.3/data/database/TAIR10_pep_20101214_updated.fasta
+    swissprot: /ei/cb/common/References/Protein/Uniprot/26Nov2019/UniProt_swissprot_Viridiplantae_33090_40171_2019_11_13.fasta
+    trembl: /ei/cb/common/References/Protein/Uniprot/26Nov2019/UniProt_trembl_Viridiplantae_33090_8997641_2019_11_13.fasta
+
+# provide AHRD configuration YAML file
+# As mentioned above, the regex for the functional description for the reference protein
+# has to be adjusted to make it parsable by AHRD
+ahrd_config: ./ahrd_example_input_go_prediction.rodents.generic.yml
+
+# output folder name, NOT path
+output: ./output
+#####
+# END of input parameters
+#####
+
+#####
+# AHRD specific resources
+#####
+blacklist_descline: /ei/software/testing/ahrd/3.3.3/src/AHRD-3.3.3/test/resources/blacklist_descline.txt
+filter_descline_sprot: /ei/software/testing/ahrd/3.3.3/src/AHRD-3.3.3/test/resources/filter_descline_sprot.txt
+filter_descline_trembl: /ei/software/testing/ahrd/3.3.3/src/AHRD-3.3.3/test/resources/filter_descline_trembl.txt
+filter_descline_tair: /ei/software/testing/ahrd/3.3.3/src/AHRD-3.3.3/test/resources/filter_descline_tair.txt
+blacklist_token: /ei/software/testing/ahrd/3.3.3/src/AHRD-3.3.3/test/resources/blacklist_token.txt
+interpro_dtd: /ei/software/testing/ahrd/3.3.3/src/AHRD-3.3.3/interpro.dtd
+# external data
+# Download the interproscan release specific datatabases
+# $ wget -N ftp://ftp.ebi.ac.uk/pub/databases/GO/goa/UNIPROT/goa_uniprot_all.gaf.gz
+# $ gunzip goa_uniprot_all.gaf.gz
+# - get the version of interproscan I have used
+# $ wget -N ftp://ftp.ebi.ac.uk/pub/databases/interpro/61.0/interpro.xml.gz
+# $ gunzip interpro.xml.gz
+gene_ontology_result: /ei/cb/common/Databases/ahrd/3.3.3/27Nov2018/goa_uniprot_all.gaf
+interpro_database: /ei/cb/common/Databases/ahrd/3.3.3/27Nov2018/interpro.xml
+#####
+# END AHRD specific resources
+#####
+
+
+
+#######################
+# source required tools and provide parameters
+# NOTE: below tools are required for the snakemake pipeline
+#######################
+load:
+    python: "source snakemake-5.4.0"
+    blast: "source blast-2.6.0"
+    prinseq: "source prinseq-0.20.3"
+    interproscan: "source interproscan-5.22.61"
+    ahrd: "source ahrd-3.3.3"
+
+# below you can modify or add parameters for the following tools that could be used when pipeline is executed
+# NOTE: there are few options that we *CANNOT* provide as parameters (as described below).
+# They are used internally within snakemake from options already given above.
+load_parameters:
+    # for blastp ignore options: -db, -outfmt, -num_threads, -query, -out
+    blast: "-evalue 1e-5"
+    # for interproscan ignore option: -i, -b, -f
+    interproscan: "-dp -goterms -iprlookup -pa -appl TIGRFAM,SFLD,Phobius,SignalP_GRAM_NEGATIVE,SUPERFAMILY,PANTHER,Gene3D,Hamap,ProSiteProfiles,Coils,SMART,CDD,PRINTS,PIRSF,ProSitePatterns,SignalP_EUK,Pfam,ProDom,MobiDBLite,SignalP_GRAM_POSITIVE"
+
+#####
+# END of source tools and parameters
+#####
