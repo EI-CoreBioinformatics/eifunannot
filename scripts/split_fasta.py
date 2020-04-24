@@ -38,9 +38,6 @@ script =  os.path.basename(sys.argv[0])
 # get the GTF/GFF3 attributes
 SEQID, SOURCE, TYPE, START, END, SCORE, STRAND, PHASE, ATTRIBUTE  = range(9)
 
-
-
-
 def main():
     parser = argparse.ArgumentParser(description="Script to split fasta file into user defined chunks", formatter_class=RawTextHelpFormatter,
             epilog="Example command:\n\t"
@@ -138,9 +135,6 @@ def split_fasta(file, prefix, count, output_dir):
     logging.debug(f"Check: ({total_count}/{count}) = {int(total_count/count)}")
     logging.debug(f"Check: ({total_count}%{count} > 0) = {total_count%count > 0}")
     logging.debug(f"Total chunks created:{int(total_count/count) + total_count%count}, ({total_count} / {count})")
-
-
-
 
 def remove_file(output_dir, prefix):
     """

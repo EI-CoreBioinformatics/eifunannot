@@ -3,26 +3,31 @@
 ###########################################################
 
 # provide path to PROTEIN fasta file
-fasta: Aesculus_hippocastanum.Trinity.fasta.transdecoder.pep.fa
+fasta: /ei/cb/common/Scripts/eifunannot/0.2/tests/test.protein.fa
+
+# output folder name, NOT path
+output: ./output
 
 # number of protein to process in a chunk
 chunk_size: 500
 
 # provide protein databases
+## PLANTS CONFIGURATION ##
 # below reference protein header is formatted to have the functional description parsable by AHRD config file (ahrd_config)
 # So, when using this pipeline, please change the reference protein functional description line
 databases:
-    reference: /ei/workarea/group-pb/CB-PPBFX-752_PIP-2315_Anne_Osbourn_JIC_AO_ENQ-3405_A_01_ext/Analysis/ahrd-3.3.3/data/database/TAIR10_pep_20101214_updated.fasta
-    swissprot: /ei/cb/common/References/Protein/Uniprot/26Nov2019/UniProt_swissprot_Viridiplantae_33090_40171_2019_11_13.fasta
-    trembl: /ei/cb/common/References/Protein/Uniprot/26Nov2019/UniProt_trembl_Viridiplantae_33090_8997641_2019_11_13.fasta
+    reference: /ei/cb/common/References/Protein/Uniprot/30Jan2019/TAIR10_pep_20101214_updated.fasta
+    swissprot: /ei/cb/common/References/Protein/Uniprot/30Jan2019/UniProt_swissprot_Viridiplantae_33090_40216_2019_12_11.fasta
+    trembl: /ei/cb/common/References/Protein/Uniprot/30Jan2019/UniProt_trembl_Viridiplantae_33090_9314135_2019_12_11.fasta
 
 # provide AHRD configuration YAML file
 # As mentioned above, the regex for the functional description for the reference protein
 # has to be adjusted to make it parsable by AHRD
-ahrd_config: ./ahrd_example_input_go_prediction.rodents.generic.yml
+# plants ahrd_config - using TAIR
+ahrd_config: /ei/cb/common/Scripts/eifunannot/0.2/etc/plants.ahrd_example_input_go_prediction.generic.yaml
+## END PLANTS ##
 
-# output folder name, NOT path
-output: ./output
+
 #####
 # END of input parameters
 #####

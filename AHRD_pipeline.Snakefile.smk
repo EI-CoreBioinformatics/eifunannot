@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Snakemake for a generic AHRD run - rodents
+Snakemake for a generic AHRD run
 
 
 Download the interproscan release specific datatabases
 $ wget -N ftp://ftp.ebi.ac.uk/pub/databases/GO/goa/UNIPROT/goa_uniprot_all.gaf.gz
 $ gunzip goa_uniprot_all.gaf.gz
+/ei/cb/common/Databases/ahrd/3.3.3/27Nov2018/goa_uniprot_all.gaf
 
 
 - get the version of interproscan I have used
 $ wget -N ftp://ftp.ebi.ac.uk/pub/databases/interpro/61.0/interpro.xml.gz
 $ gunzip interpro.xml.gz
+/ei/cb/common/Databases/ahrd/3.3.3/27Nov2018/interpro.xml
 
-01/04/2019, 15:02:16
+# Tuesday, 28 January 2020, 10:55AM
 """
 
 # authorship and License information
@@ -23,7 +25,7 @@ __license__ = "GNU General Public License v3.0"
 __maintainer__ = "Gemy George Kaithakottil"
 __email__ = "Gemy.Kaithakottil@gmail.com"
 __status__ = "Production"
-__version__ = "0.1"
+__version__ = "0.2"
 
 # import modules
 import os
@@ -33,7 +35,7 @@ import logging
 # Request min version of snakemake
 # https://snakemake.readthedocs.io/en/stable/snakefiles/writing_snakefiles.html#depend-on-a-minimum-snakemake-version
 from snakemake.utils import min_version
-min_version("5.4.0")
+min_version("5.9.1")
 
 # declare variables
 cwd = os.getcwd()
@@ -45,6 +47,13 @@ if not os.path.exists(fasta):
     # logging.error(f"ERROR: The fasta file cannot be accessed - '{fasta}'")
     sys.exit()
 fasta_base = os.path.basename(fasta)
+
+#######################
+# SCRIPT
+#######################
+split_fasta_script   = "/ei/cb/common/Scripts/eifunannot/0.2/scripts/split_fasta.py"
+#######################
+#######################
 
 #######################
 # FOLDERS
@@ -63,11 +72,6 @@ AHRD_DIR = os.path.join(OUTPUT,"output_ahrd")
 
 # AHRD config file
 ahrd_config = os.path.abspath(config["ahrd_config"])
-
-# need to add os.sep if we try to give absolute path to an already existing location
-# here is the link explaining this issue
-# https://stackoverflow.com/a/28080468
-# res = os.path.join(os.sep,"ei","software","testing","ahrd","3.3.3","src","AHRD-3.3.3","test","resources")
 
 # get proteins
 protein_samples = []
@@ -99,9 +103,6 @@ with open(fasta, 'r') as file:
         if line.startswith(">"):
             count += 1
 
-# print("Total number of fasta sequences:{1} [{0}]".format(fasta,count))
-print(f"INFO: Total number of fasta sequences:{count} [{fasta}]")
-# logging.info(f"INFO: Total number of fasta sequences:{count} [{fasta}]")
 total_chunks = count / per_chunk
 total_chunks = int(total_chunks) # avoid round-up
 
@@ -109,23 +110,10 @@ total_chunks = int(total_chunks) # avoid round-up
 if (count % per_chunk != 0):
     total_chunks += 1
 
-# print("Total number of chunks:{0} [{1} per chunk]".format(total_chunks,per_chunk))
+print(f"INFO: Total number of fasta sequences:{count} [{fasta}]")
 print(f"INFO: Total number of chunks:{total_chunks} [{per_chunk} per chunk]")
-# logging.info(f"INFO: Total number of chunks:{total_chunks} [{per_chunk} per chunk]")
-# logging.warning("Total number of chunks:{0} [{1} per chunk]".format(total_chunks,per_chunk))
 chunk_numbers = list(range(1,total_chunks+1)) # need to add chunks+1 to get desired length - check here https://stackoverflow.com/a/4504677
-# print("Total chunk numbers:{}".format(chunk_numbers))
-# FOR TESTING
-# chunk_numbers = list(range(1,5)) # need to add chunks+1 to get desired length - check here https://stackoverflow.com/a/4504677
 
-
-# summarise the inputs
-# print ("Inputs provided:")
-# print ("fasta:{0}".format(fasta))
-print(f"INFO: Inputs provided:")
-print(f"INFO: fasta:{fasta}")
-# logging.info(f"INFO: Inputs provided:")
-# logging.info(f"INFO: fasta:{fasta}")
 # create logs folder
 # need to find a proper fix for this as mentioned in the issue below, but for now using a quick fix
 # # https://bitbucket.org/snakemake/snakemake/issues/838/how-to-create-output-folders-for-slurm-log#comment-45348663
@@ -171,14 +159,14 @@ rule split_fasta:
         prefix = "chunk",
         chunks = per_chunk,
         basename = fasta_base,
-        source = config["load"]["python"]
+        source = config["load"]["python"],
+        script = split_fasta_script
     shell:
         "(set +u" \
         + " && cd {params.cwd} " \
         + " && {params.source} " \
         + " && ln -sf {input.fasta} "
-        # + " && /usr/bin/time -v leaff_v0.2.pl {params.basename} {params.prefix} {params.chunks}"
-        + " && /usr/bin/time -v /hpc-home/kaithakg/snakemake_scripts/AHRD_pipeline/0.1/split_fasta.v0.1.py -v -f {params.basename} -p {params.prefix} -c {params.chunks}"
+        + " && /usr/bin/time -v {params.script} -v -f {params.basename} -p {params.prefix} -c {params.chunks}"
         + ") 2> {log}"
 
 # run blast makeblastdb
@@ -245,13 +233,12 @@ rule interproscan_5_22_61:
     shell:
         "(set +u" \
         + " && cd {params.cwd} " \
-        # steps to remove asterix from the fasta
+        # steps to clean input fasta
         + " && ln -sf {input} {params.temp_name} " \
         + " && {params.source_prinseq} " \
         + " && prinseq -fasta {params.temp_name} -aa -rm_header -out_good {params.temp_name}.good -out_bad {params.temp_name}.bad " \
         + " && mv {params.temp_name}.good.fasta {params.input} " \
         + " && {params.source_interproscan} " \
-        # + " && /usr/bin/time -v interproscan.sh -i {params.input} -b chunk_{wildcards.sample}.txt.interproscan -f TSV {params.parameters}" \
         + " && /usr/bin/time -v interproscan.sh -i {params.input} -b {params.prefix} -f TSV {params.parameters}" \
         + ") 2> {log}"
 
@@ -259,7 +246,6 @@ rule interproscan_5_22_61:
 # -----------
 rule ahrd:
     input:
-        # lambda wildcards: config["databases"][wildcards.protein_new],
         chunk = os.path.join(CHUNKS_FOLDER,"chunk_{sample}.txt"),
         # from ahrd package
         blacklist_descline = os.path.abspath(config["blacklist_descline"]),
@@ -273,16 +259,13 @@ rule ahrd:
         interpro_database = os.path.abspath(config["interpro_database"]),
         # other intputs from the earlier runs
         # database
-        # database = os.path.join(DATABASE_DIR,"{protein}.protein.fa"),
-        # db_status = os.path.join(DATABASE_DIR,"{protein}.protein.fa.done"),
         database_reference = os.path.join(DATABASE_DIR,"reference.protein.fa"),
         db_status_reference = os.path.join(DATABASE_DIR,"reference.protein.fa.done"),
         database_swissprot = os.path.join(DATABASE_DIR,"swissprot.protein.fa"),
         db_status_swissprot = os.path.join(DATABASE_DIR,"swissprot.protein.fa.done"),
         database_trembl = os.path.join(DATABASE_DIR,"trembl.protein.fa"),
         db_status_trembl = os.path.join(DATABASE_DIR,"trembl.protein.fa.done"),
-        # blast results - NOT THE BEST WAY TO DO IT, BUT WILL NEED TO FIND A WAY TO DO IT PROPERLY
-        # blast = os.path.join(OUTPUT,"output_{{protein}}","chunk_{sample}.txt-vs-{{protein}}.blastp.tblr"),
+        # blast results
         blast_reference = os.path.join(OUTPUT,"output_reference","chunk_{sample}.txt-vs-reference.blastp.tblr"),
         blast_swissprot = os.path.join(OUTPUT,"output_swissprot","chunk_{sample}.txt-vs-swissprot.blastp.tblr"),
         blast_trembl = os.path.join(OUTPUT,"output_trembl","chunk_{sample}.txt-vs-trembl.blastp.tblr"),
@@ -308,7 +291,6 @@ rule ahrd:
         + " && ln -sf {input.ahrd_config} ahrd_input_go_prediction.yml" \
         + " && ln -sf {input.chunk} proteins.fasta" \
         + " && ln -sf {input.ipr_results} interpro_result.raw" \
-        # + " && ln -sf {input.blast} {wildcards.protein}_blastp_tabular.txt" \ # TO DO
         + " && ln -sf {input.blast_reference} reference_blastp_tabular.txt" \
         + " && ln -sf {input.blast_swissprot} swissprot_blastp_tabular.txt" \
         + " && ln -sf {input.blast_trembl} trembl_blastp_tabular.txt" \
