@@ -1,5 +1,6 @@
 #!/bin/bash
-install_prefix=/ei/software/cb/eifunannot
+name=eifunannot
+install_prefix=/ei/software/cb/${name}
 expected_version=$(grep -o "version *= *[\".0-9]\+" setup.py | sed "s/[\" ]//g" | cut -f 2 -d =)
 
 dir=$(pwd)
