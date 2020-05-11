@@ -2,30 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Snakemake for a generic AHRD run
-
-
-Download the interproscan release specific datatabases
-$ wget -N ftp://ftp.ebi.ac.uk/pub/databases/GO/goa/UNIPROT/goa_uniprot_all.gaf.gz
-$ gunzip goa_uniprot_all.gaf.gz
-/ei/cb/common/Databases/ahrd/3.3.3/27Nov2018/goa_uniprot_all.gaf
-
-
-- get the version of interproscan I have used
-$ wget -N ftp://ftp.ebi.ac.uk/pub/databases/interpro/61.0/interpro.xml.gz
-$ gunzip interpro.xml.gz
-/ei/cb/common/Databases/ahrd/3.3.3/27Nov2018/interpro.xml
-
-# Tuesday, 28 January 2020, 10:55AM
 """
-
-# authorship and License information
-__author__ = "Gemy George Kaithakottil"
-__copyright__ = "Copyright 2018"
-__license__ = "GNU General Public License v3.0"
-__maintainer__ = "Gemy George Kaithakottil"
-__email__ = "Gemy.Kaithakottil@gmail.com"
-__status__ = "Production"
-__version__ = "0.2"
 
 # import modules
 import os
@@ -44,16 +21,9 @@ cwd = os.getcwd()
 fasta = os.path.abspath(config["fasta"])
 if not os.path.exists(fasta):
     print(f"ERROR: The fasta file cannot be accessed - '{fasta}'")
-    # logging.error(f"ERROR: The fasta file cannot be accessed - '{fasta}'")
     sys.exit()
 fasta_base = os.path.basename(fasta)
 
-#######################
-# SCRIPT
-#######################
-split_fasta_script   = "/ei/cb/common/Scripts/eifunannot/0.2/scripts/split_fasta.py"
-#######################
-#######################
 
 #######################
 # FOLDERS
@@ -129,17 +99,17 @@ shell.prefix("set -eo pipefail; ")
 rule all:
     input:
         # chunk output
-        expand(os.path.join(CHUNKS_FOLDER,"chunk_{sample}.txt"),sample=chunk_numbers),
+        expand(os.path.join(CHUNKS_FOLDER,"chunk_{sample}.txt"), sample=chunk_numbers),
         # blast database output
-        expand(os.path.join(DATABASE_DIR,"{protein}.protein.fa.done"),protein=protein_samples),
+        expand(os.path.join(DATABASE_DIR,"{protein}.protein.fa.done"), protein=protein_samples),
         # blastp output
-        expand(os.path.join(OUTPUT,"output_{protein}","chunk_{sample}.txt-vs-{protein}.blastp.tblr"),sample=chunk_numbers,protein=protein_samples),
+        expand(os.path.join(OUTPUT,"output_{protein}","chunk_{sample}.txt-vs-{protein}.blastp.{ext}"), sample=chunk_numbers, protein=protein_samples, ext=["tblr","completed"]),
         # interproscn output
-        expand(os.path.join(INTERPROSCAN_DIR,"chunk_{sample}","chunk_{sample}.txt.interproscan.tsv"),sample=chunk_numbers),
+        expand(os.path.join(INTERPROSCAN_DIR,"chunk_{sample}","chunk_{sample}.txt.interproscan.{ext}"), sample=chunk_numbers, ext=["tsv","completed"]),
         # ahrd output
-        expand(os.path.join(AHRD_DIR,"chunk_{sample}","ahrd_output.csv"),sample=chunk_numbers),
+        expand(os.path.join(AHRD_DIR,"chunk_{sample}","ahrd_output.{ext}"), sample=chunk_numbers, ext=["csv","completed"]),
         # collate ahrd output
-        expand(os.path.join(OUTPUT,"ahrd_output.csv"))
+        expand(os.path.join(OUTPUT,"ahrd_output.{ext}"), ext=["csv","completed"])
 
 #######################
 # WORKFLOW
@@ -158,15 +128,15 @@ rule split_fasta:
         cwd = CHUNKS_FOLDER,
         prefix = "chunk",
         chunks = per_chunk,
-        basename = fasta_base,
-        source = config["load"]["python"],
-        script = split_fasta_script
+        basename = fasta_base
+        # source = config["load"]["python"]
+        # script = split_fasta_script
     shell:
         "(set +u" \
         + " && cd {params.cwd} " \
-        + " && {params.source} " \
+        # + " && {params.source} " \
         + " && ln -sf {input.fasta} "
-        + " && /usr/bin/time -v {params.script} -v -f {params.basename} -p {params.prefix} -c {params.chunks}"
+        + " && /usr/bin/time -v split_fasta -v -f {params.basename} -p {params.prefix} -c {params.chunks}"
         + ") 2> {log}"
 
 # run blast makeblastdb
@@ -197,7 +167,8 @@ rule blastp:
         database = os.path.join(DATABASE_DIR,"{protein}.protein.fa"),
         db_status = os.path.join(DATABASE_DIR,"{protein}.protein.fa.done")
     output:
-        os.path.join(OUTPUT,"output_{protein}","chunk_{sample}.txt-vs-{protein}.blastp.tblr")
+        output = os.path.join(OUTPUT,"output_{protein}","chunk_{sample}.txt-vs-{protein}.blastp.tblr"),
+        completed = os.path.join(OUTPUT,"output_{protein}","chunk_{sample}.txt-vs-{protein}.blastp.completed")
     log:
         os.path.join(DATABASE_DIR,"blastp.chunk_{sample}_{protein}.log")
     params:
@@ -209,7 +180,8 @@ rule blastp:
         "(set +u" \
         + " && cd {params.cwd} " \
         + " && {params.source} " \
-        + " && /usr/bin/time -v blastp -db {input.database} -outfmt 6 -num_threads {params.threads} {params.parameters} -query {input.chunk} -out {output}" \
+        + " && /usr/bin/time -v blastp -db {input.database} -outfmt 6 -num_threads {params.threads} {params.parameters} -query {input.chunk} -out {output.output} " \
+        + " && touch {output.completed} " \
         + ") 2> {log}"
 
 # run interproscan_5_22_61
@@ -218,7 +190,8 @@ rule interproscan_5_22_61:
     input:
         chunk = os.path.join(CHUNKS_FOLDER,"chunk_{sample}.txt"),
     output:
-        os.path.join(INTERPROSCAN_DIR,"chunk_{sample}","chunk_{sample}.txt.interproscan.tsv")
+        output = os.path.join(INTERPROSCAN_DIR,"chunk_{sample}","chunk_{sample}.txt.interproscan.tsv"),
+        completed = os.path.join(INTERPROSCAN_DIR,"chunk_{sample}","chunk_{sample}.txt.interproscan.completed"),
     log:
         os.path.join(DATABASE_DIR,"interproscan.chunk_{sample}.log")
     params:
@@ -240,6 +213,7 @@ rule interproscan_5_22_61:
         + " && mv {params.temp_name}.good.fasta {params.input} " \
         + " && {params.source_interproscan} " \
         + " && /usr/bin/time -v interproscan.sh -i {params.input} -b {params.prefix} -f TSV {params.parameters}" \
+        + " && touch {output.completed}" \
         + ") 2> {log}"
 
 # run ahrd
@@ -274,7 +248,8 @@ rule ahrd:
         # ahrd configuration
         ahrd_config = ahrd_config
     output:
-        os.path.join(AHRD_DIR,"chunk_{sample}","ahrd_output.csv")
+        output = os.path.join(AHRD_DIR,"chunk_{sample}","ahrd_output.csv"),
+        completed = os.path.join(AHRD_DIR,"chunk_{sample}","ahrd_output.completed")
     log:
         os.path.join(AHRD_DIR,"chunk_{sample}","ahrd.log")
     threads: 1
@@ -284,7 +259,7 @@ rule ahrd:
     shell:
         "(set +u" \
         + " && cd {params.cwd} " \
-        + " && cp -a {input.chunk} {input.blacklist_descline} {input.filter_descline_sprot}" \
+        + " && cp -a {input.blacklist_descline} {input.filter_descline_sprot}" \
         + " {input.filter_descline_trembl} {input.filter_descline_tair} {input.blacklist_token}" \
         + " {input.interpro_dtd} ." \
         + " && ln -sf {input.gene_ontology_result} {input.interpro_database} ." \
@@ -297,6 +272,7 @@ rule ahrd:
         + " && touch prepare_ahrd.done" \
         + " && {params.source} " \
         + " && /usr/bin/time -v java -Xmx10g -jar /ei/software/testing/ahrd/3.3.3/x86_64/bin/ahrd.jar ahrd_input_go_prediction.yml" \
+        + " && touch {output.completed}" \
         + ") 2> {log}"
 
 
@@ -306,7 +282,8 @@ rule collate_ahrd:
     input:
         expand(os.path.join(AHRD_DIR,"chunk_{sample}","ahrd_output.csv"),sample=chunk_numbers)
     output:
-        os.path.join(OUTPUT,"ahrd_output.csv")
+        output = os.path.join(OUTPUT,"ahrd_output.csv"),
+        completed = os.path.join(OUTPUT,"ahrd_output.completed")
     log:
         os.path.join(AHRD_DIR,"collate_ahrd.log")
     threads: 1
@@ -316,5 +293,6 @@ rule collate_ahrd:
         "(set +u" \
         + " && cd {params.cwd} " \
         + " && cat " + os.path.join(AHRD_DIR,"chunk_*","ahrd_output.csv") + " | awk '!/^#|^Protein-Accession|^$/' | sort -k1,1V > ahrd_output.woH.csv" \
-        + " && head -n 3 " + os.path.join(AHRD_DIR,"chunk_1","ahrd_output.csv") + " | cat - ahrd_output.woH.csv > {output} " \
+        + " && head -n 3 " + os.path.join(AHRD_DIR,"chunk_1","ahrd_output.csv") + " | cat - ahrd_output.woH.csv > {output.output} " \
+        + " && touch {output.completed}" \
         + ") 2> {log}"

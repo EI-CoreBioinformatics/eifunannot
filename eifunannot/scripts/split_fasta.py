@@ -1,21 +1,6 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Script to split fasta file into user defined chunks
-
-
-14/03/2019, 12:22:10
 """
-
-# authorship and License information
-__author__ = "Gemy George Kaithakottil"
-__copyright__ = "Copyright 2018"
-__license__ = "GNU General Public License v3.0"
-__maintainer__ = "Gemy George Kaithakottil"
-__email__ = "Gemy.Kaithakottil@gmail.com"
-__status__ = "Production"
-__version__ = "0.1"
-
 
 # import libraries
 import argparse
@@ -26,6 +11,9 @@ import sys
 import logging
 import glob
 from itertools import islice
+
+from eifunannot import __version__, __author__, __email__
+
 # check python version
 if sys.version_info[0] < 3:
     raise Exception("Please source Python 3, sourcing 'source snakemake-5.4.0' will do")

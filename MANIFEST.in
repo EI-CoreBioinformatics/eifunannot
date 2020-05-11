@@ -1,0 +1,4 @@
+include DESCRIPTION.md
+include README.md
+#recursive-include eifunannot *smk *json *yaml
+recursive-include eifunannot/config *json *yaml
