@@ -171,7 +171,13 @@ The commands are:
             print("Dry run completed successfully!\n")
         else:
             print("AHRD pipeline completed successfully!\n")
+            # get the outputs
+            interproscan_output_file = f"{output}/query-vs-interproscan.tsv"
+            reference_blastp_output_file = f"{output}/query-vs-reference.blastp.tblr"
+            swissprot_blastp_output_file = f"{output}/query-vs-swissprot.blastp.tblr"
+            trembl_blastp_output_file = f"{output}/query-vs-trembl.blastp.tblr"
             output_file = f"{output}/ahrd_output.csv"
+            # process AHRD output to get stats
             data = pd.read_csv(output_file, sep='\t', comment='#')
             # keeping for reference
             # print(data['AHRD-Quality-Code'].value_counts(dropna=False))
@@ -232,7 +238,14 @@ The commands are:
             print(f"{hits} ({round(hits / total_data, 4) * 100} %) - have functional annotation (of which {repeat_associated_hits} are repeat associated (transposon|transposase|helicase))")
             print(
                 f"{no_hits} ({round(no_hits / total_data, 4) * 100} %) - are unknown proteins (of which {unknown_with_ipr_hits} have an interproscan id)")
-            print(f"\nOutput file:\n{output_file}\n")
+            print(f"\nMain AHRD output file:\n{output_file}\n")
+            print("Other output files:")
+            print(f"Query protein vs reference blastp output file: {reference_blastp_output_file}")
+            print(f"Query protein vs UniProt Swiss-Prot blastp output file: {swissprot_blastp_output_file}")
+            print(
+                f"Query protein vs UniProt TrEMBL blastp output file: {trembl_blastp_output_file}")
+            print(f"Query protein vs InterProScan output file: {interproscan_output_file}")
+            print()
             #=====#
 
 if __name__ == "__main__":

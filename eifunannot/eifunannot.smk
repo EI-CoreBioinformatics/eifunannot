@@ -96,6 +96,9 @@ if not os.path.exists(cluster_logs_dir):
 #######################
 shell.prefix("set -eo pipefail; ")
 
+localrules: collate_blastp_reference, collate_blastp_swissprot, collate_blastp_trembl, collate_interproscan
+
+
 rule all:
     input:
         # chunk output
@@ -108,6 +111,10 @@ rule all:
         expand(os.path.join(INTERPROSCAN_DIR,"chunk_{sample}","chunk_{sample}.txt.interproscan.{ext}"), sample=chunk_numbers, ext=["tsv","completed"]),
         # ahrd output
         expand(os.path.join(AHRD_DIR,"chunk_{sample}","ahrd_output.{ext}"), sample=chunk_numbers, ext=["csv","completed"]),
+        # collate blastp outputs
+        expand(os.path.join(OUTPUT,"query-vs-{dbs}.blastp.{ext}"), dbs=["reference","swissprot","trembl"], ext=["tblr","completed"]),
+        # collate interproscan output
+        expand(os.path.join(OUTPUT,"query-vs-interproscan.{ext}"), ext=["tsv","completed"]),
         # collate ahrd output
         expand(os.path.join(OUTPUT,"ahrd_output.{ext}"), ext=["csv","completed"])
 
@@ -213,6 +220,86 @@ rule interproscan_5_22_61:
         + " && mv {params.temp_name}.good.fasta {params.input} " \
         + " && {params.source_interproscan} " \
         + " && /usr/bin/time -v interproscan.sh -i {params.input} -b {params.prefix} -f TSV {params.parameters}" \
+        + " && touch {output.completed}" \
+        + ") 2> {log}"
+
+# run collate_blastp_reference
+# -----------
+rule collate_blastp_reference:
+    input:
+        expand(os.path.join(OUTPUT,"output_reference","chunk_{sample}.txt-vs-reference.blastp.tblr"),sample=chunk_numbers)
+    output:
+        output = os.path.join(OUTPUT,"query-vs-reference.blastp.tblr"),
+        completed = os.path.join(OUTPUT,"query-vs-reference.blastp.completed")
+    log:
+        os.path.join(DATABASE_DIR,"collate_blastp_reference.log")
+    threads: 1
+    params:
+        cwd = OUTPUT,
+    shell:
+        "(set +u" \
+        + " && cd {params.cwd} " \
+        + " && cat " + os.path.join(OUTPUT,"output_reference","chunk_*.txt-vs-reference.blastp.tblr") + " | sort -k1,1V > {output.output} " \
+        + " && touch {output.completed}" \
+        + ") 2> {log}"
+
+# run collate_blastp_swissprot
+# -----------
+rule collate_blastp_swissprot:
+    input:
+        expand(os.path.join(OUTPUT,"output_swissprot","chunk_{sample}.txt-vs-swissprot.blastp.tblr"),sample=chunk_numbers)
+    output:
+        output = os.path.join(OUTPUT,"query-vs-swissprot.blastp.tblr"),
+        completed = os.path.join(OUTPUT,"query-vs-swissprot.blastp.completed")
+    log:
+        os.path.join(DATABASE_DIR,"collate_blastp_swissprot.log")
+    threads: 1
+    params:
+        cwd = OUTPUT,
+    shell:
+        "(set +u" \
+        + " && cd {params.cwd} " \
+        + " && cat " + os.path.join(OUTPUT,"output_swissprot","chunk_*.txt-vs-swissprot.blastp.tblr") + " | sort -k1,1V > {output.output} " \
+        + " && touch {output.completed}" \
+        + ") 2> {log}"
+
+# run collate_blastp_trembl
+# -----------
+rule collate_blastp_trembl:
+    input:
+        expand(os.path.join(OUTPUT,"output_trembl","chunk_{sample}.txt-vs-trembl.blastp.tblr"),sample=chunk_numbers)
+    output:
+        output = os.path.join(OUTPUT,"query-vs-trembl.blastp.tblr"),
+        completed = os.path.join(OUTPUT,"query-vs-trembl.blastp.completed")
+    log:
+        os.path.join(DATABASE_DIR,"collate_blastp_trembl.log")
+    threads: 1
+    params:
+        cwd = OUTPUT,
+    shell:
+        "(set +u" \
+        + " && cd {params.cwd} " \
+        + " && cat " + os.path.join(OUTPUT,"output_trembl","chunk_*.txt-vs-trembl.blastp.tblr") + " | sort -k1,1V > {output.output} " \
+        + " && touch {output.completed}" \
+        + ") 2> {log}"
+
+# run collate_interproscan
+# -----------
+rule collate_interproscan:
+    input:
+        expand(os.path.join(INTERPROSCAN_DIR,"chunk_{sample}","chunk_{sample}.txt.interproscan.tsv"),sample=chunk_numbers)
+    output:
+        output = os.path.join(OUTPUT,"query-vs-interproscan.tsv"),
+        completed = os.path.join(OUTPUT,"query-vs-interproscan.completed")
+    log:
+        os.path.join(DATABASE_DIR,"collate_interproscan.log")
+    threads: 1
+    params:
+        cwd = OUTPUT,
+    shell:
+        "(set +u" \
+        + " && cd {params.cwd} " \
+        + " && cat " + os.path.join(INTERPROSCAN_DIR,"chunk_*","chunk_*.txt.interproscan.tsv") + " | sort -k1,1V > {output.output} " \
         + " && touch {output.completed}" \
         + ") 2> {log}"
 
