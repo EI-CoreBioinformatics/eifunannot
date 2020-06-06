@@ -1,0 +1,37 @@
+proteins_fasta: ./proteins.fasta
+gene_ontology_result: ./goa_uniprot_all.gaf
+interpro_database: ./interpro.xml
+interpro_result: ./interpro_result.raw
+token_score_bit_score_weight: 0.468
+token_score_database_score_weight: 0.2098
+token_score_overlap_score_weight: 0.3221
+output: ./ahrd_output.csv
+blast_dbs:
+  swissprot:
+    weight: 653
+    description_score_bit_score_weight: 2.717061
+    file: ./swissprot_blastp_tabular.txt
+    database: ../../data/database/swissprot.protein.fa
+    blacklist: ./blacklist_descline.txt
+    filter: ./filter_descline_sprot.txt
+    token_blacklist: ./blacklist_token.txt
+
+  trembl:
+    weight: 904
+    description_score_bit_score_weight: 2.590211
+    file: ./trembl_blastp_tabular.txt
+    database: ../../data/database/trembl.protein.fa
+    blacklist: ./blacklist_descline.txt
+    filter: ./filter_descline_trembl.txt
+    token_blacklist: ./blacklist_token.txt
+
+  tair:
+    weight: 854
+    description_score_bit_score_weight: 2.917405
+    file: ./reference_blastp_tabular.txt
+    database: ../../data/database/reference.protein.fa
+    fasta_header_regex: "^>(?<accession>[aA][tT][0-9mMcC][gG]\\d+(\\.\\d+)?)\\s+\\|[^\\|]+\\|\\s+(?<description>[^\\|]+)(\\s*\\|.*)?$"
+    short_accession_regex: "^(?<shortAccession>.+)$"
+    blacklist: ./blacklist_descline.txt
+    filter: ./filter_descline_tair.txt
+    token_blacklist: ./blacklist_token.txt

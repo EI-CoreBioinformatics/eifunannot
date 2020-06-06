@@ -43,6 +43,22 @@ AHRD_DIR = os.path.join(OUTPUT,"output_ahrd")
 # AHRD config file
 ahrd_config = os.path.abspath(config["ahrd_config"])
 
+# check if reference is provided
+no_reference = False
+try:
+    user_reference = config['databases']['reference']
+except KeyError as err:
+    print(f"Reference not provided - '{err}'")
+    no_reference = True
+
+# possible addition when adding more than one reference
+# user_reference = config['databases']['reference']
+# if user_reference in [None, '', '~']:
+#     no_reference = True
+# else:
+#     no_reference = False
+# print(f"Reference provided is an accepted YAML term:'{user_reference}' '{no_reference}'")
+
 # get proteins
 protein_samples = []
 all_protein_samples = config["databases"]
@@ -96,7 +112,10 @@ if not os.path.exists(cluster_logs_dir):
 #######################
 shell.prefix("set -eo pipefail; ")
 
-localrules: collate_blastp_reference, collate_blastp_swissprot, collate_blastp_trembl, collate_interproscan
+if no_reference:
+    localrules: collate_blastp_swissprot, collate_blastp_trembl, collate_interproscan
+else:
+    localrules: collate_blastp_reference, collate_blastp_swissprot, collate_blastp_trembl, collate_interproscan
 
 
 rule all:
@@ -112,7 +131,8 @@ rule all:
         # ahrd output
         expand(os.path.join(AHRD_DIR,"chunk_{sample}","ahrd_output.{ext}"), sample=chunk_numbers, ext=["csv","completed"]),
         # collate blastp outputs
-        expand(os.path.join(OUTPUT,"query-vs-{dbs}.blastp.{ext}"), dbs=["reference","swissprot","trembl"], ext=["tblr","completed"]),
+        expand(os.path.join(OUTPUT,"query-vs-{dbs}.blastp.{ext}"), dbs=["swissprot","trembl"], ext=["tblr","completed"]) if no_reference else expand(os.path.join(OUTPUT,"query-vs-{dbs}.blastp.{ext}"), dbs=["reference","swissprot","trembl"], ext=["tblr","completed"]),
+
         # collate interproscan output
         expand(os.path.join(OUTPUT,"query-vs-interproscan.{ext}"), ext=["tsv","completed"]),
         # collate ahrd output
@@ -303,64 +323,120 @@ rule collate_interproscan:
         + " && touch {output.completed}" \
         + ") 2> {log}"
 
-# run ahrd
-# -----------
-rule ahrd:
-    input:
-        chunk = os.path.join(CHUNKS_FOLDER,"chunk_{sample}.txt"),
-        # from ahrd package
-        blacklist_descline = os.path.abspath(config["blacklist_descline"]),
-        filter_descline_sprot = os.path.abspath(config["filter_descline_sprot"]),
-        filter_descline_trembl = os.path.abspath(config["filter_descline_trembl"]),
-        filter_descline_tair = os.path.abspath(config["filter_descline_tair"]),
-        blacklist_token = os.path.abspath(config["blacklist_token"]),
-        interpro_dtd = os.path.abspath(config["interpro_dtd"]),
-        # external data
-        gene_ontology_result = os.path.abspath(config["gene_ontology_result"]),
-        interpro_database = os.path.abspath(config["interpro_database"]),
-        # other intputs from the earlier runs
-        # database
-        database_reference = os.path.join(DATABASE_DIR,"reference.protein.fa"),
-        db_status_reference = os.path.join(DATABASE_DIR,"reference.protein.fa.done"),
-        database_swissprot = os.path.join(DATABASE_DIR,"swissprot.protein.fa"),
-        db_status_swissprot = os.path.join(DATABASE_DIR,"swissprot.protein.fa.done"),
-        database_trembl = os.path.join(DATABASE_DIR,"trembl.protein.fa"),
-        db_status_trembl = os.path.join(DATABASE_DIR,"trembl.protein.fa.done"),
-        # blast results
-        blast_reference = os.path.join(OUTPUT,"output_reference","chunk_{sample}.txt-vs-reference.blastp.tblr"),
-        blast_swissprot = os.path.join(OUTPUT,"output_swissprot","chunk_{sample}.txt-vs-swissprot.blastp.tblr"),
-        blast_trembl = os.path.join(OUTPUT,"output_trembl","chunk_{sample}.txt-vs-trembl.blastp.tblr"),
-        # interproscan results
-        ipr_results = os.path.join(INTERPROSCAN_DIR,"chunk_{sample}","chunk_{sample}.txt.interproscan.tsv"),
-        # ahrd configuration
-        ahrd_config = ahrd_config
-    output:
-        output = os.path.join(AHRD_DIR,"chunk_{sample}","ahrd_output.csv"),
-        completed = os.path.join(AHRD_DIR,"chunk_{sample}","ahrd_output.completed")
-    log:
-        os.path.join(AHRD_DIR,"chunk_{sample}","ahrd.log")
-    threads: 1
-    params:
-        cwd = os.path.join(AHRD_DIR,"chunk_{sample}"),
-        source = config["load"]["ahrd"]
-    shell:
-        "(set +u" \
-        + " && cd {params.cwd} " \
-        + " && cp -a {input.blacklist_descline} {input.filter_descline_sprot}" \
-        + " {input.filter_descline_trembl} {input.filter_descline_tair} {input.blacklist_token}" \
-        + " {input.interpro_dtd} ." \
-        + " && ln -sf {input.gene_ontology_result} {input.interpro_database} ." \
-        + " && ln -sf {input.ahrd_config} ahrd_input_go_prediction.yml" \
-        + " && ln -sf {input.chunk} proteins.fasta" \
-        + " && ln -sf {input.ipr_results} interpro_result.raw" \
-        + " && ln -sf {input.blast_reference} reference_blastp_tabular.txt" \
-        + " && ln -sf {input.blast_swissprot} swissprot_blastp_tabular.txt" \
-        + " && ln -sf {input.blast_trembl} trembl_blastp_tabular.txt" \
-        + " && touch prepare_ahrd.done" \
-        + " && {params.source} " \
-        + " && /usr/bin/time -v java -Xmx10g -jar /ei/software/testing/ahrd/3.3.3/x86_64/bin/ahrd.jar ahrd_input_go_prediction.yml" \
-        + " && touch {output.completed}" \
-        + ") 2> {log}"
+
+if no_reference:
+    # run ahrd
+    # -----------
+    rule ahrd:
+        input:
+            chunk = os.path.join(CHUNKS_FOLDER,"chunk_{sample}.txt"),
+            # from ahrd package
+            blacklist_descline = os.path.abspath(config["blacklist_descline"]),
+            filter_descline_sprot = os.path.abspath(config["filter_descline_sprot"]),
+            filter_descline_trembl = os.path.abspath(config["filter_descline_trembl"]),
+            blacklist_token = os.path.abspath(config["blacklist_token"]),
+            interpro_dtd = os.path.abspath(config["interpro_dtd"]),
+            # external data
+            gene_ontology_result = os.path.abspath(config["gene_ontology_result"]),
+            interpro_database = os.path.abspath(config["interpro_database"]),
+            # other intputs from the earlier runs
+            # database
+            database_swissprot = os.path.join(DATABASE_DIR,"swissprot.protein.fa"),
+            db_status_swissprot = os.path.join(DATABASE_DIR,"swissprot.protein.fa.done"),
+            database_trembl = os.path.join(DATABASE_DIR,"trembl.protein.fa"),
+            db_status_trembl = os.path.join(DATABASE_DIR,"trembl.protein.fa.done"),
+            # blast results
+            blast_swissprot = os.path.join(OUTPUT,"output_swissprot","chunk_{sample}.txt-vs-swissprot.blastp.tblr"),
+            blast_trembl = os.path.join(OUTPUT,"output_trembl","chunk_{sample}.txt-vs-trembl.blastp.tblr"),
+            # interproscan results
+            ipr_results = os.path.join(INTERPROSCAN_DIR,"chunk_{sample}","chunk_{sample}.txt.interproscan.tsv"),
+            # ahrd configuration
+            ahrd_config = ahrd_config
+        output:
+            output = os.path.join(AHRD_DIR,"chunk_{sample}","ahrd_output.csv"),
+            completed = os.path.join(AHRD_DIR,"chunk_{sample}","ahrd_output.completed")
+        log:
+            os.path.join(AHRD_DIR,"chunk_{sample}","ahrd.log")
+        threads: 1
+        params:
+            cwd = os.path.join(AHRD_DIR,"chunk_{sample}"),
+            source = config["load"]["ahrd"]
+        shell:
+            "(set +u" \
+            + " && cd {params.cwd} " \
+            + " && cp -a {input.blacklist_descline} {input.filter_descline_sprot}" \
+            + " {input.filter_descline_trembl} {input.blacklist_token}" \
+            + " {input.interpro_dtd} ." \
+            + " && ln -sf {input.gene_ontology_result} {input.interpro_database} ." \
+            + " && ln -sf {input.ahrd_config} ahrd_input_go_prediction.yml" \
+            + " && ln -sf {input.chunk} proteins.fasta" \
+            + " && ln -sf {input.ipr_results} interpro_result.raw" \
+            + " && ln -sf {input.blast_swissprot} swissprot_blastp_tabular.txt" \
+            + " && ln -sf {input.blast_trembl} trembl_blastp_tabular.txt" \
+            + " && touch prepare_ahrd.done" \
+            + " && {params.source} " \
+            + " && /usr/bin/time -v java -Xmx10g -jar /ei/software/testing/ahrd/3.3.3/x86_64/bin/ahrd.jar ahrd_input_go_prediction.yml" \
+            + " && touch {output.completed}" \
+            + ") 2> {log}"
+else:
+    # run ahrd
+    # -----------
+    rule ahrd:
+        input:
+            chunk = os.path.join(CHUNKS_FOLDER,"chunk_{sample}.txt"),
+            # from ahrd package
+            blacklist_descline = os.path.abspath(config["blacklist_descline"]),
+            filter_descline_sprot = os.path.abspath(config["filter_descline_sprot"]),
+            filter_descline_trembl = os.path.abspath(config["filter_descline_trembl"]),
+            filter_descline_tair = os.path.abspath(config["filter_descline_tair"]),
+            blacklist_token = os.path.abspath(config["blacklist_token"]),
+            interpro_dtd = os.path.abspath(config["interpro_dtd"]),
+            # external data
+            gene_ontology_result = os.path.abspath(config["gene_ontology_result"]),
+            interpro_database = os.path.abspath(config["interpro_database"]),
+            # other intputs from the earlier runs
+            # database
+            database_reference = os.path.join(DATABASE_DIR,"reference.protein.fa"),
+            db_status_reference = os.path.join(DATABASE_DIR,"reference.protein.fa.done"),
+            database_swissprot = os.path.join(DATABASE_DIR,"swissprot.protein.fa"),
+            db_status_swissprot = os.path.join(DATABASE_DIR,"swissprot.protein.fa.done"),
+            database_trembl = os.path.join(DATABASE_DIR,"trembl.protein.fa"),
+            db_status_trembl = os.path.join(DATABASE_DIR,"trembl.protein.fa.done"),
+            # blast results
+            blast_reference = os.path.join(OUTPUT,"output_reference","chunk_{sample}.txt-vs-reference.blastp.tblr"),
+            blast_swissprot = os.path.join(OUTPUT,"output_swissprot","chunk_{sample}.txt-vs-swissprot.blastp.tblr"),
+            blast_trembl = os.path.join(OUTPUT,"output_trembl","chunk_{sample}.txt-vs-trembl.blastp.tblr"),
+            # interproscan results
+            ipr_results = os.path.join(INTERPROSCAN_DIR,"chunk_{sample}","chunk_{sample}.txt.interproscan.tsv"),
+            # ahrd configuration
+            ahrd_config = ahrd_config
+        output:
+            output = os.path.join(AHRD_DIR,"chunk_{sample}","ahrd_output.csv"),
+            completed = os.path.join(AHRD_DIR,"chunk_{sample}","ahrd_output.completed")
+        log:
+            os.path.join(AHRD_DIR,"chunk_{sample}","ahrd.log")
+        threads: 1
+        params:
+            cwd = os.path.join(AHRD_DIR,"chunk_{sample}"),
+            source = config["load"]["ahrd"]
+        shell:
+            "(set +u" \
+            + " && cd {params.cwd} " \
+            + " && cp -a {input.blacklist_descline} {input.filter_descline_sprot}" \
+            + " {input.filter_descline_trembl} {input.filter_descline_tair} {input.blacklist_token}" \
+            + " {input.interpro_dtd} ." \
+            + " && ln -sf {input.gene_ontology_result} {input.interpro_database} ." \
+            + " && ln -sf {input.ahrd_config} ahrd_input_go_prediction.yml" \
+            + " && ln -sf {input.chunk} proteins.fasta" \
+            + " && ln -sf {input.ipr_results} interpro_result.raw" \
+            + " && ln -sf {input.blast_reference} reference_blastp_tabular.txt" \
+            + " && ln -sf {input.blast_swissprot} swissprot_blastp_tabular.txt" \
+            + " && ln -sf {input.blast_trembl} trembl_blastp_tabular.txt" \
+            + " && touch prepare_ahrd.done" \
+            + " && {params.source} " \
+            + " && /usr/bin/time -v java -Xmx10g -jar /ei/software/testing/ahrd/3.3.3/x86_64/bin/ahrd.jar ahrd_input_go_prediction.yml" \
+            + " && touch {output.completed}" \
+            + ") 2> {log}"
 
 
 # run collate_ahrd
