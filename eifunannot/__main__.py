@@ -40,17 +40,16 @@ cwd = os.getcwd()
 
 # get pkg_resources
 # get config location
-# eifunannot_folder = pkg_resources.resource_filename("eifunannot", "eifunannot")
 config_folder = pkg_resources.resource_filename("eifunannot", "config")
 # need to split the file and make uniq list names
 configure_files = [os.path.basename(fname) for fname in glob.iglob(os.path.join(config_folder, "**", "*yaml"), recursive=True)]
-cluster_config = "".join([fname for fname in glob.iglob(os.path.join(config_folder, "**", "*cluster_config*json"), recursive=True)])
-run_config = [fname for fname in glob.iglob(os.path.join(config_folder, "**", "*run_config*yaml"), recursive=True)]
-ahrd_config = [fname for fname in glob.iglob(os.path.join(config_folder, "**", "*ahrd*generic*yaml"), recursive=True)]
+# we need the cluster_config as str to concatenate during the subprocess cmd 
+cluster_config = "".join([fname for fname in glob.iglob(os.path.join(config_folder, "**", "cluster_config.json"), recursive=True)])
+run_config = [fname for fname in glob.iglob(os.path.join(config_folder, "**", "run_config.yaml"), recursive=True)]
+ahrd_config = [fname for fname in glob.iglob(os.path.join(config_folder, "**", "ahrd*generic*yaml"), recursive=True)]
 # snakemake path
 # snakemake_file = [fname for fname in glob.iglob(os.path.join(eifunannot_folder, "**", "eifunannot.smk"), recursive=True)]
-snakemake_file = pkg_resources.resource_filename(
-    "eifunannot", "eifunannot.smk")
+snakemake_file = pkg_resources.resource_filename("eifunannot", "eifunannot.smk")
 
 
 class EiFunAnnotAHRD(object):
@@ -101,6 +100,7 @@ The commands are:
                 print(f"Configure file already exists {os.path.join(output, file_base)}")
                 print(f"Use --force to overwrite")
                 sys.exit(1)
+        print(f"Configure complete.")
 
     # eifunannot run setup
     def run(self):
@@ -133,13 +133,30 @@ The commands are:
             cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
             output = os.path.abspath(cfg['output'])
 
+            # check if reference is provided
+            no_reference = False
+            try:
+                user_reference = cfg['databases']['reference']
+            except KeyError as err:
+                # print(f"Reference not provided - '{err}'")
+                no_reference = True
+
+            # possible addition when adding more than one reference
+            # if reference in [None, '', '~']:
+            #     print(f"Reference provided is an accepted YAML term:'{reference}'")
+            # else:
+            #     print(f"Reference provided is NOT an accepted YAML term:'{reference}'")
+            #     sys.exit(1)
+            # sys.exit(1)
+
+
         # run AHRD pipeline
         print(f"Running eifunannot run..")
         EiFunAnnotAHRD.run_ahrd(
-            output, config, ahrd_config, hpc_config, dry_run, jobs)
+            output, no_reference, config, ahrd_config, hpc_config, dry_run, jobs)
     
     @staticmethod
-    def run_ahrd(output, config, ahrd_config, hpc_config, dry_run, jobs):
+    def run_ahrd(output, no_reference, config, ahrd_config, hpc_config, dry_run, jobs):
         # print(output, config, hpc_config, dry_run, jobs)
         # print(type(output), type(config), type(hpc_config), type(dry_run), type(jobs))
         cmd = None
@@ -173,7 +190,10 @@ The commands are:
             print("AHRD pipeline completed successfully!\n")
             # get the outputs
             interproscan_output_file = f"{output}/query-vs-interproscan.tsv"
-            reference_blastp_output_file = f"{output}/query-vs-reference.blastp.tblr"
+            if no_reference:
+                pass
+            else:
+                reference_blastp_output_file = f"{output}/query-vs-reference.blastp.tblr"
             swissprot_blastp_output_file = f"{output}/query-vs-swissprot.blastp.tblr"
             trembl_blastp_output_file = f"{output}/query-vs-trembl.blastp.tblr"
             output_file = f"{output}/ahrd_output.csv"
@@ -240,7 +260,10 @@ The commands are:
                 f"{no_hits} ({round(no_hits / total_data, 4) * 100} %) - are unknown proteins (of which {unknown_with_ipr_hits} have an interproscan id)")
             print(f"\nMain AHRD output file:\n{output_file}\n")
             print("Other output files:")
-            print(f"Query protein vs reference blastp output file: {reference_blastp_output_file}")
+            if no_reference:
+                pass
+            else:
+                print(f"Query protein vs reference blastp output file: {reference_blastp_output_file}")
             print(f"Query protein vs UniProt Swiss-Prot blastp output file: {swissprot_blastp_output_file}")
             print(
                 f"Query protein vs UniProt TrEMBL blastp output file: {trembl_blastp_output_file}")
@@ -248,6 +271,8 @@ The commands are:
             print()
             #=====#
 
+def main():
+    EiFunAnnotAHRD()
+    
 if __name__ == "__main__":
-    value = EiFunAnnotAHRD()
-    print(f"The return is:{value}")
+    main()
