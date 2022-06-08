@@ -23,8 +23,7 @@ try:
     assert sys.version_info >= (3, 7)
 except AssertionError:
     logging.error(
-        f"Python >=3.7 is required.\n"
-        f"Current is Python {sys.version}.\nExiting..."
+        f"Python >=3.7 is required.\n" f"Current is Python {sys.version}.\nExiting..."
     )
     sys.exit()
 
@@ -33,7 +32,7 @@ if sys.version_info[0] < 3:
     raise Exception("Please source Python 3, sourcing 'source snakemake-5.4.0' will do")
 
 # get script name
-script =  os.path.basename(sys.argv[0])
+script = os.path.basename(sys.argv[0])
 
 # get cwd
 cwd = os.getcwd()
@@ -42,33 +41,53 @@ cwd = os.getcwd()
 # get config location
 config_folder = pkg_resources.resource_filename("eifunannot", "config")
 # need to split the file and make uniq list names
-configure_files = [os.path.basename(fname) for fname in glob.iglob(os.path.join(config_folder, "**", "*yaml"), recursive=True)]
-# we need the cluster_config as str to concatenate during the subprocess cmd 
-cluster_config = "".join([fname for fname in glob.iglob(os.path.join(config_folder, "**", "cluster_config.json"), recursive=True)])
-run_config = [fname for fname in glob.iglob(os.path.join(config_folder, "**", "run_config.yaml"), recursive=True)]
-ahrd_config = [fname for fname in glob.iglob(os.path.join(config_folder, "**", "ahrd*generic*yaml"), recursive=True)]
+configure_files = [
+    os.path.basename(fname)
+    for fname in glob.iglob(os.path.join(config_folder, "**", "*yaml"), recursive=True)
+]
+# we need the cluster_config as str to concatenate during the subprocess cmd
+cluster_config = "".join(
+    [
+        fname
+        for fname in glob.iglob(
+            os.path.join(config_folder, "**", "cluster_config.json"), recursive=True
+        )
+    ]
+)
+run_config = [
+    fname
+    for fname in glob.iglob(
+        os.path.join(config_folder, "**", "run_config.yaml"), recursive=True
+    )
+]
+ahrd_config = [
+    fname
+    for fname in glob.iglob(
+        os.path.join(config_folder, "**", "ahrd*generic*yaml"), recursive=True
+    )
+]
 # snakemake path
 # snakemake_file = [fname for fname in glob.iglob(os.path.join(eifunannot_folder, "**", "eifunannot.smk"), recursive=True)]
 snakemake_file = pkg_resources.resource_filename("eifunannot", "eifunannot.smk")
 
 
 class EiFunAnnotAHRD(object):
-
     def __init__(self):
         parser = argparse.ArgumentParser(
-            description=f'EI FunAnnot version {__version__}',
-            usage='''eifunannot <command> [<args>]
+            description=f"EI FunAnnot version {__version__}",
+            usage="""eifunannot <command> [<args>]
 
 The commands are:
    configure     Get the configuration files
    run           Run the pipeline
-''')
-        parser.add_argument('command', help='Subcommand to run')
+""",
+        )
+        parser.add_argument("command", help="Subcommand to run")
         # parse_args defaults to [1:] for args, but you need to
         # exclude the rest of the args too, or validation will fail
         args = parser.parse_args(sys.argv[1:2])
         if not hasattr(self, args.command):
-            print('Unrecognized command')
+            print("Unrecognized command")
             parser.print_help()
             sys.exit(1)
         # use dispatch pattern to invoke method with same name
@@ -77,12 +96,33 @@ The commands are:
     # eifunannot configure setup
     def configure(self):
 
-        parser = argparse.ArgumentParser(description=f"EI FunAnnot version {__version__} - configure", formatter_class=RawTextHelpFormatter, 
-        epilog="Example configure command:\n" + script + " configure" + "\n\nContact:" + __author__ + "(" + __email__ + ")")
+        parser = argparse.ArgumentParser(
+            description=f"EI FunAnnot version {__version__} - configure",
+            formatter_class=RawTextHelpFormatter,
+            epilog="Example configure command:\n"
+            + script
+            + " configure"
+            + "\n\nContact:"
+            + __author__
+            + "("
+            + __email__
+            + ")",
+        )
 
         # parser.add_argument("-c", "--configure", type=str, default=None, help="Configure file to use. Choose from the following:\n{}".format(",\n".join(configure_files)))
-        parser.add_argument("-o", "--output", type=str, default=cwd, help="Output directory (default: %(default)s)")
-        parser.add_argument("-f", "--force", action='store_true', help="Force overwrite if configuration files exist (default: %(default)s)")
+        parser.add_argument(
+            "-o",
+            "--output",
+            type=str,
+            default=cwd,
+            help="Output directory (default: %(default)s)",
+        )
+        parser.add_argument(
+            "-f",
+            "--force",
+            action="store_true",
+            help="Force overwrite if configuration files exist (default: %(default)s)",
+        )
         # now that we're inside a subcommand, ignore the first
         # TWO argvs, ie the command (eifunannot) and the subcommand (configure)
         args = parser.parse_args(sys.argv[2:])
@@ -97,7 +137,9 @@ The commands are:
                 print(f"Copying file {file_base} to {cwd}")
                 copy(abs_file_path, cwd)
             elif os.path.exists(os.path.join(output, file_base)):
-                print(f"Configure file already exists {os.path.join(output, file_base)}")
+                print(
+                    f"Configure file already exists {os.path.join(output, file_base)}"
+                )
                 print(f"Use --force to overwrite")
                 sys.exit(1)
         print(f"Configure complete.")
@@ -105,19 +147,50 @@ The commands are:
     # eifunannot run setup
     def run(self):
 
-        parser = argparse.ArgumentParser(description=f"EI FunAnnot version {__version__} - run", formatter_class=RawTextHelpFormatter, 
-        epilog="Example run command:\n" + script + " run --config [plants.yaml]" + "\n\nContact:" + __author__ + "(" + __email__ + ")")
-        parser.add_argument("--config", required=True, nargs='?',
-                            help="Provide config.yaml file to run the pipeline (default: %(default)s)")
-        parser.add_argument("--ahrd_config", required=True, nargs='?',
-                            help="Provide ahrd_config.yaml file to run the pipeline (default: %(default)s)")
-        parser.add_argument("--hpc_config", default=cluster_config,
-                            nargs='?', help="Provide hpc_config.json file (default: %(default)s)")
-        parser.add_argument("--jobs", type=int, default=1, nargs='?',
-                            help="Maximum number of jobs to execute at any one time (default: %(default)s)")
+        parser = argparse.ArgumentParser(
+            description=f"EI FunAnnot version {__version__} - run",
+            formatter_class=RawTextHelpFormatter,
+            epilog="Example run command:\n"
+            + script
+            + " run --config [plants.yaml]"
+            + "\n\nContact:"
+            + __author__
+            + "("
+            + __email__
+            + ")",
+        )
+        parser.add_argument(
+            "--config",
+            required=True,
+            nargs="?",
+            help="Provide config.yaml file to run the pipeline (default: %(default)s)",
+        )
+        parser.add_argument(
+            "--ahrd_config",
+            required=True,
+            nargs="?",
+            help="Provide ahrd_config.yaml file to run the pipeline (default: %(default)s)",
+        )
+        parser.add_argument(
+            "--hpc_config",
+            default=cluster_config,
+            nargs="?",
+            help="Provide hpc_config.json file (default: %(default)s)",
+        )
+        parser.add_argument(
+            "--jobs",
+            type=int,
+            default=1,
+            nargs="?",
+            help="Maximum number of jobs to execute at any one time (default: %(default)s)",
+        )
         # boolen action='store_true' help from here: https://stackoverflow.com/a/36031646
-        parser.add_argument("-np", "--dry_run",
-                            action='store_true', help="Dry run (default: %(default)s)")
+        parser.add_argument(
+            "-np",
+            "--dry_run",
+            action="store_true",
+            help="Dry run (default: %(default)s)",
+        )
         # args = parser.parse_args()
         # only consider arguments after first two
         args = parser.parse_args(sys.argv[2:])
@@ -129,14 +202,14 @@ The commands are:
         dry_run = args.dry_run
 
         output = None
-        with open(config, 'r') as ymlfile:
+        with open(config, "r") as ymlfile:
             cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
-            output = os.path.abspath(cfg['output'])
+            output = os.path.abspath(cfg["output"])
 
             # check if reference is provided
             no_reference = False
             try:
-                user_reference = cfg['databases']['reference']
+                user_reference = cfg["databases"]["reference"]
             except KeyError as err:
                 # print(f"Reference not provided - '{err}'")
                 no_reference = True
@@ -149,12 +222,12 @@ The commands are:
             #     sys.exit(1)
             # sys.exit(1)
 
-
         # run AHRD pipeline
         print(f"Running eifunannot run..")
         EiFunAnnotAHRD.run_ahrd(
-            output, no_reference, config, ahrd_config, hpc_config, dry_run, jobs)
-    
+            output, no_reference, config, ahrd_config, hpc_config, dry_run, jobs
+        )
+
     @staticmethod
     def run_ahrd(output, no_reference, config, ahrd_config, hpc_config, dry_run, jobs):
         # print(output, config, hpc_config, dry_run, jobs)
@@ -164,25 +237,45 @@ The commands are:
             print("Enabling dry run..")
             # print(snakemake_file)
             # sys.exit(1)
-            cmd = "snakemake --snakefile " + snakemake_file \
-                + " --configfile " + config \
-                + " --config ahrd_config=" + ahrd_config \
-                + " --cluster-config " + hpc_config \
+            cmd = (
+                "snakemake --snakefile "
+                + snakemake_file
+                + " --configfile "
+                + config
+                + " --config ahrd_config="
+                + ahrd_config
+                + " --cluster-config "
+                + hpc_config
                 + " -np"
+            )
         else:
-            cmd = "snakemake --latency-wait 120 --snakefile " + snakemake_file \
-                + " --configfile " + config \
-                + " --config ahrd_config=" + ahrd_config \
-                + " --cluster-config " + hpc_config \
-                + " --printshellcmds" \
-                + " --jobs " + str(jobs) \
-                + " --cluster \" sbatch -p {cluster.partition} -c {cluster.c} --mem {cluster.mem} -J {cluster.J} -o {cluster.o}\""
-        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,universal_newlines=True) # for universal_newlines - https://stackoverflow.com/a/4417735
-        (result, error) = p.communicate() # https://www.programcreek.com/python/example/50/subprocess.Popen
+            cmd = (
+                "snakemake --latency-wait 120 --snakefile "
+                + snakemake_file
+                + " --configfile "
+                + config
+                + " --config ahrd_config="
+                + ahrd_config
+                + " --cluster-config "
+                + hpc_config
+                + " --printshellcmds"
+                + " --jobs "
+                + str(jobs)
+                + ' --cluster " sbatch -p {cluster.partition} -c {cluster.c} --mem {cluster.mem} -J {cluster.J} -o {cluster.o}"'
+            )
+        p = subprocess.Popen(
+            cmd, shell=True, stdout=subprocess.PIPE, universal_newlines=True
+        )  # for universal_newlines - https://stackoverflow.com/a/4417735
+        (
+            result,
+            error,
+        ) = (
+            p.communicate()
+        )  # https://www.programcreek.com/python/example/50/subprocess.Popen
         exit_code = p.returncode
         if exit_code:
             raise subprocess.CalledProcessError(exit_code, cmd)
-        print (result)
+        print(result)
 
         if dry_run:
             print("Dry run completed successfully!\n")
@@ -193,12 +286,14 @@ The commands are:
             if no_reference:
                 pass
             else:
-                reference_blastp_output_file = f"{output}/query-vs-reference.blastp.tblr"
+                reference_blastp_output_file = (
+                    f"{output}/query-vs-reference.blastp.tblr"
+                )
             swissprot_blastp_output_file = f"{output}/query-vs-swissprot.blastp.tblr"
             trembl_blastp_output_file = f"{output}/query-vs-trembl.blastp.tblr"
             output_file = f"{output}/ahrd_output.csv"
             # process AHRD output to get stats
-            data = pd.read_csv(output_file, sep='\t', comment='#')
+            data = pd.read_csv(output_file, sep="\t", comment="#")
             # keeping for reference
             # print(data['AHRD-Quality-Code'].value_counts(dropna=False))
             # print(data['AHRD-Quality-Code'].value_counts(normalize=True, dropna=False)*100)
@@ -207,18 +302,32 @@ The commands are:
             # # get quality code that are NaN
             # no_hits = data['AHRD-Quality-Code'].isna().value_counts()[True]
 
-            #=====#
+            # =====#
             # print stats
             # AHRD-Quality-Code stats
             # https://stackoverflow.com/a/50169502
-            ahrd_quality_code_stats = pd.concat([data['AHRD-Quality-Code'].value_counts(dropna=False), round(data['AHRD-Quality-Code'].value_counts(
-                normalize=True, dropna=False).mul(100), 2)], axis=1, keys=('counts', 'percentages'))
+            ahrd_quality_code_stats = pd.concat(
+                [
+                    data["AHRD-Quality-Code"].value_counts(dropna=False),
+                    round(
+                        data["AHRD-Quality-Code"]
+                        .value_counts(normalize=True, dropna=False)
+                        .mul(100),
+                        2,
+                    ),
+                ],
+                axis=1,
+                keys=("counts", "percentages"),
+            )
             print(
-                f"AHRD-Quality-Code stats: [NaN = No hit, Reference here: https://github.com/groupschoof/AHRD/blob/master/README.textile#241-tab-delimited-table]\n{ahrd_quality_code_stats}\n")
-            #=====#
+                f"AHRD-Quality-Code stats: [NaN = No hit, Reference here: https://github.com/groupschoof/AHRD/blob/master/README.textile#241-tab-delimited-table]\n{ahrd_quality_code_stats}\n"
+            )
+            # =====#
             total_data = len(data)  # get total
             # get count with and without function
-            unknown = data['Human-Readable-Description'].str.contains(r"^Unknown protein$")
+            unknown = data["Human-Readable-Description"].str.contains(
+                r"^Unknown protein$"
+            )
             try:
                 hits = unknown.value_counts()[False]
             except KeyError as err:
@@ -231,48 +340,63 @@ The commands are:
                 no_hits = 0
 
             # print error if the total_data does not match hits + no_hits
-            assert total_data == hits + \
-                no_hits, f"ERROR: Total output {total_data} and hits {hits + no_hits} do not match"
+            assert (
+                total_data == hits + no_hits
+            ), f"ERROR: Total output {total_data} and hits {hits + no_hits} do not match"
             # get repeat association - based on two columns, 'Human-Readable-Description' and 'Interpro-ID (Description)'
             # https://stackoverflow.com/a/45709524
-            repeat_associated = data['Human-Readable-Description'].str.contains(
-                r"transpos|helicas") | data['Interpro-ID (Description)'].str.contains(r"transpos|helicas")
+            repeat_associated = data["Human-Readable-Description"].str.contains(
+                r"transpos|helicas"
+            ) | data["Interpro-ID (Description)"].str.contains(r"transpos|helicas")
             try:
                 repeat_associated_hits = repeat_associated.value_counts()[True]
             except KeyError as err:
                 # print(f"There are no hits that are repeat associated: {err}")
                 repeat_associated_hits = 0
             # get unknown with interproscan ids
-            unknown_with_ipr = data['Human-Readable-Description'].str.contains(
-                r"^Unknown protein$") & data['Interpro-ID (Description)'].str.contains(r"IPR")
+            unknown_with_ipr = data["Human-Readable-Description"].str.contains(
+                r"^Unknown protein$"
+            ) & data["Interpro-ID (Description)"].str.contains(r"IPR")
             try:
                 unknown_with_ipr_hits = unknown_with_ipr.value_counts()[True]
             except KeyError as err:
                 # print(f"There are no unknown hits with IPR: {err}")
                 unknown_with_ipr_hits = 0
 
-            #=====#
+            # =====#
             # print summary
             print("Overall summary:")
             print(f"Of total {total_data} input protein models:")
-            print(f"{hits} ({round(hits / total_data, 4) * 100} %) - have functional annotation (of which {repeat_associated_hits} are repeat associated (transposon|transposase|helicase))")
             print(
-                f"{no_hits} ({round(no_hits / total_data, 4) * 100} %) - are unknown proteins (of which {unknown_with_ipr_hits} have an interproscan id)")
+                f"{hits} ({round(hits / total_data, 4) * 100} %) - have functional annotation (of which {repeat_associated_hits} are repeat associated (transposon|transposase|helicase))"
+            )
+            print(
+                f"{no_hits} ({round(no_hits / total_data, 4) * 100} %) - are unknown proteins (of which {unknown_with_ipr_hits} have an interproscan id)"
+            )
             print(f"\nMain AHRD output file:\n{output_file}\n")
             print("Other output files:")
             if no_reference:
                 pass
             else:
-                print(f"Query protein vs reference blastp output file: {reference_blastp_output_file}")
-            print(f"Query protein vs UniProt Swiss-Prot blastp output file: {swissprot_blastp_output_file}")
+                print(
+                    f"Query protein vs reference blastp output file: {reference_blastp_output_file}"
+                )
             print(
-                f"Query protein vs UniProt TrEMBL blastp output file: {trembl_blastp_output_file}")
-            print(f"Query protein vs InterProScan output file: {interproscan_output_file}")
+                f"Query protein vs UniProt Swiss-Prot blastp output file: {swissprot_blastp_output_file}"
+            )
+            print(
+                f"Query protein vs UniProt TrEMBL blastp output file: {trembl_blastp_output_file}"
+            )
+            print(
+                f"Query protein vs InterProScan output file: {interproscan_output_file}"
+            )
             print()
-            #=====#
+            # =====#
+
 
 def main():
     EiFunAnnotAHRD()
-    
+
+
 if __name__ == "__main__":
     main()
