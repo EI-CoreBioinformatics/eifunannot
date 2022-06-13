@@ -163,7 +163,8 @@ rule split_fasta:
         + " && cd {params.cwd} " \
         # + " && {params.source} " \
         + " && ln -sf {input.fasta} "
-        + " && /usr/bin/time -v split_fasta -v -f {params.basename} -p {params.prefix} -c {params.chunks}"
+        # awk script by Pierre Lindenbaum https://www.biostars.org/p/13270/
+        + " && /usr/bin/time -v awk 'BEGIN {{n=0;m=1;}} /^>/ {{ if (n%{params.chunks}==0) {{f=sprintf(\"{params.cwd}/{params.prefix}_%d.txt\",m); m++;}}; n++; }} {{ print >> f }}' {params.basename}"
         + ") 2> {log}"
 
 # run blast makeblastdb
