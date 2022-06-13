@@ -293,7 +293,9 @@ The commands are:
             trembl_blastp_output_file = f"{output}/query-vs-trembl.blastp.tblr"
             output_file = f"{output}/ahrd_output.csv"
             # process AHRD output to get stats
-            data = pd.read_csv(output_file, sep="\t", comment="#")
+            data = pd.read_csv(
+                output_file, sep="\t", comment="#", keep_default_na=False
+            )
             # keeping for reference
             # print(data['AHRD-Quality-Code'].value_counts(dropna=False))
             # print(data['AHRD-Quality-Code'].value_counts(normalize=True, dropna=False)*100)
