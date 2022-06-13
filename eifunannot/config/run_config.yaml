@@ -16,7 +16,7 @@ chunk_size: 500
 # below reference protein header is formatted to have the functional description parsable by AHRD config file (ahrd_config)
 # So, when using this pipeline, please change the reference protein functional description line
 
-# if no reference is available please remove the 'reference:' line
+# if no reference is available please remove the 'reference:' line under 'databases:' from this run_config.yaml file and also remove the 'tair:' section (lines 28 to 37) under 'blast_dbs:' from the AHRD config file - ahrd_example_input_go_prediction.generic.yaml
 databases:
     reference: /ei/cb/common/References/Protein/Uniprot/30Jan2019/TAIR10_pep_20101214_updated.fasta
     swissprot: /ei/cb/common/References/Protein/Uniprot/30Jan2019/UniProt_swissprot_Viridiplantae_33090_40216_2019_12_11.fasta
