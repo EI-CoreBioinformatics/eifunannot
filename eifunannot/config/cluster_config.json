@@ -1,63 +1,55 @@
 {
-    "__default__" :
-    {
-        "time" : "7-00:00:00",
-        "c" : 1,
-        "J" : "gk.{rule}",
-        "o" : "logs/cluster/{rule}.log",
-        "partition" : "ei-cb"
+    "__default__": {
+        "time": "7-00:00:00",
+        "c": 1,
+        "J": "gk.{rule}",
+        "o": "logs/cluster/{rule}.log",
+        "partition": "ei-cb"
     },
-    "makeblastdb" :
-    {
-        "c" : 1,
-        "mem" : 10240,
-        "o" : "logs/cluster/{rule}.log",
-        "partition" : "ei-cb"
+    "makeblastdb": {
+        "c": 1,
+        "mem": 10240,
+        "o": "logs/cluster/{rule}.log",
+        "partition": "ei-cb"
     },
-    "split_fasta" :
-    {
-        "c" : 4,
-        "mem" : 10240,
-        "o" : "logs/cluster/{rule}.log",
-        "partition" : "ei-cb"
+    "split_fasta": {
+        "c": 4,
+        "mem": 10240,
+        "o": "logs/cluster/{rule}.log",
+        "partition": "ei-cb"
     },
-    "blastx" :
-    {
-        "c" : 4,
-        "mem" : 5120,
-        "J" : "gk.{rule}.{wildcards.protein}.{wildcards.sample}",
-        "o" : "logs/cluster/{rule}.{wildcards.protein}.{wildcards.sample}.log",
-        "partition" : "ei-medium"
+    "blastx": {
+        "c": 4,
+        "mem": 20480,
+        "J": "gk.{rule}.{wildcards.protein}.{wildcards.sample}",
+        "o": "logs/cluster/{rule}.{wildcards.protein}.{wildcards.sample}.log",
+        "partition": "ei-medium"
     },
-    "blastp" :
-    {
-        "c" : 4,
-        "mem" : 5120,
-        "J" : "gk.{rule}.{wildcards.protein}.{wildcards.sample}",
-        "o" : "logs/cluster/{rule}.{wildcards.protein}.{wildcards.sample}.log",
-        "partition" : "ei-medium"
+    "blastp": {
+        "c": 4,
+        "mem": 20480,
+        "J": "gk.{rule}.{wildcards.protein}.{wildcards.sample}",
+        "o": "logs/cluster/{rule}.{wildcards.protein}.{wildcards.sample}.log",
+        "partition": "ei-medium"
     },
-    "interproscan_5_22_61" :
-    {
-        "c" : 4,
-        "mem" : 30720,
-        "J" : "gk.{rule}.{wildcards.sample}",
-        "o" : "logs/cluster/{rule}.{wildcards.sample}.log",
-        "partition" : "ei-medium"
+    "interproscan_5_22_61": {
+        "c": 4,
+        "mem": 30720,
+        "J": "gk.{rule}.{wildcards.sample}",
+        "o": "logs/cluster/{rule}.{wildcards.sample}.log",
+        "partition": "ei-medium"
     },
-    "ahrd" :
-    {
-        "c" : 1,
-        "mem" : 10240,
-        "J" : "gk.{rule}.{wildcards.sample}",
-        "o" : "logs/cluster/{rule}.{wildcards.sample}.log",
-        "partition" : "ei-medium"
+    "ahrd": {
+        "c": 1,
+        "mem": 10240,
+        "J": "gk.{rule}.{wildcards.sample}",
+        "o": "logs/cluster/{rule}.{wildcards.sample}.log",
+        "partition": "ei-medium"
     },
-    "collate_ahrd" :
-    {
-        "c" : 1,
-        "mem" : 10240,
-        "o" : "logs/cluster/{rule}.log",
-        "partition" : "ei-medium"
+    "collate_ahrd": {
+        "c": 1,
+        "mem": 10240,
+        "o": "logs/cluster/{rule}.log",
+        "partition": "ei-medium"
     }
 }
