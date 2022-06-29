@@ -5,7 +5,6 @@ from distutils.extension import Extension
 from codecs import open
 from os import path
 import glob
-import re
 import sys
 
 
@@ -60,26 +59,18 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            # "eifunannot=eifunannot.__main__:main",
-            # "eifunannot=eifunannot.__main__:EiFunAnnotAHRD",
             "eifunannot=eifunannot.__main__:main",
             "split_fasta=eifunannot.scripts.split_fasta:main",
+            "generate_ahrd_reference_fasta_from_ncbi=eifunannot.scripts.generate_ahrd_reference_fasta_from_ncbi:main",
+            "generate_ahrd_reference_fasta_from_ensembl=eifunannot.scripts.generate_ahrd_reference_fasta_from_ensembl:main",
+            "generate_ahrd_reference_fasta_from_file=eifunannot.scripts.generate_ahrd_reference_fasta_from_file:main",
         ]
     },
     package_data={
         "eifunannot.config": glob.glob("eifunannot/config/*json")
         + glob.glob("eifunannot/config/*yaml"),
-        "eifunannot": ["*.smk"]
-        # "eifunannot.config": glob.glob(path.join("eifunannot", "config", "*yaml")) + glob.glob(path.join("eifunannot", "config", "*json")),
-        # "eifunannot.config": glob.glob(path.join("config", "*yaml")) + glob.glob(path.join("config", "*json")),
+        "eifunannot": ["*.smk"],
     },
-    include_package_data=True
-    # data_files=[
-    # 	# ("etc", glob.glob("etc/*.*"))
-    # 	("bin.config", glob.glob("eifunannot/config/*.*"))
-    # 	# ('cluster_config', ['etc/cluster_config.json']),
-    # 	# ('run_config', ['etc/config.yaml']),
-    # 	# ('plants_config', ['etc/plants.ahrd_example_input_go_prediction.generic.yaml'])
-    # ]
+    include_package_data=True,
 )
 
