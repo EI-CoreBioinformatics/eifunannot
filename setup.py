@@ -17,7 +17,7 @@ with open(path.join(here, "README.md"), encoding="utf-8") as fh:
     long_description = fh.read()
 
 name = "eifunannot"
-version = "1.2.1"
+version = "1.3.0"
 
 if sys.version_info.major != 3:
     raise EnvironmentError(
