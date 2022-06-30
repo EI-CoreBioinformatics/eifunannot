@@ -81,11 +81,11 @@ for protein_name, protein_path in all_protein_samples.items():
 per_chunk = config["chunk_size"]
 if not per_chunk:
     per_chunk = 500
-    print(f'WARN: chunk_size option is required, use default values [{per_chunk}] instead')
+    print(f'WARN: chunk_size option is required, using default values [{per_chunk}] instead')
     # logging.warning(f'WARN: chunk_size option is required, use default values [{per_chunk}] instead')
 count = 0
-with open(fasta, 'r') as file:
-    for line in file:
+with open(fasta, 'r') as fh:
+    for line in fh:
         if line.startswith(">"):
             count += 1
 
@@ -150,18 +150,15 @@ rule split_fasta:
     output:
         expand(os.path.join(CHUNKS_FOLDER,"chunk_{sample}.txt"),sample=chunk_numbers)
     log:
-        os.path.join(CHUNKS_FOLDER,"split_fasta.log")
+        os.path.join(cluster_logs_dir,"split_fasta.log")
     params:
         cwd = CHUNKS_FOLDER,
         prefix = "chunk",
         chunks = per_chunk,
         basename = fasta_base
-        # source = config["load"]["python"]
-        # script = split_fasta_script
     shell:
         "(set +u" \
         + " && cd {params.cwd} " \
-        # + " && {params.source} " \
         + " && ln -sf {input.fasta} "
         # awk script by Pierre Lindenbaum https://www.biostars.org/p/13270/
         + " && /usr/bin/time -v awk 'BEGIN {{n=0;m=1;}} /^>/ {{ if (n%{params.chunks}==0) {{f=sprintf(\"{params.cwd}/{params.prefix}_%d.txt\",m); m++;}}; n++; }} {{ print >> f }}' {params.basename}"
@@ -175,7 +172,7 @@ rule makeblastdb:
     output:
         os.path.join(DATABASE_DIR,"{protein}.protein.fa.done")
     log:
-        os.path.join(DATABASE_DIR,"makeblastdb.{protein}.log")
+        os.path.join(cluster_logs_dir,"makeblastdb.{protein}.log")
     threads: 1
     params:
         cwd = DATABASE_DIR,
@@ -198,7 +195,7 @@ rule blastp:
         output = os.path.join(OUTPUT,"output_{protein}","chunk_{sample}.txt-vs-{protein}.blastp.tblr"),
         completed = os.path.join(OUTPUT,"output_{protein}","chunk_{sample}.txt-vs-{protein}.blastp.completed")
     log:
-        os.path.join(DATABASE_DIR,"blastp.chunk_{sample}_{protein}.log")
+        os.path.join(cluster_logs_dir,"blastp.chunk_{sample}_{protein}.log")
     params:
         cwd = OUTPUT,
         threads = "4",
@@ -221,7 +218,7 @@ rule interproscan_5_22_61:
         output = os.path.join(INTERPROSCAN_DIR,"chunk_{sample}","chunk_{sample}.txt.interproscan.tsv"),
         completed = os.path.join(INTERPROSCAN_DIR,"chunk_{sample}","chunk_{sample}.txt.interproscan.completed"),
     log:
-        os.path.join(DATABASE_DIR,"interproscan.chunk_{sample}.log")
+        os.path.join(cluster_logs_dir,"interproscan.chunk_{sample}.log")
     params:
         cwd = os.path.join(INTERPROSCAN_DIR,"chunk_{sample}"),
         temp_name = "chunk_{sample}.raw.txt",
@@ -253,7 +250,7 @@ rule collate_blastp_reference:
         output = os.path.join(OUTPUT,"query-vs-reference.blastp.tblr"),
         completed = os.path.join(OUTPUT,"query-vs-reference.blastp.completed")
     log:
-        os.path.join(DATABASE_DIR,"collate_blastp_reference.log")
+        os.path.join(cluster_logs_dir,"collate_blastp_reference.log")
     threads: 1
     params:
         cwd = OUTPUT,
@@ -273,7 +270,7 @@ rule collate_blastp_swissprot:
         output = os.path.join(OUTPUT,"query-vs-swissprot.blastp.tblr"),
         completed = os.path.join(OUTPUT,"query-vs-swissprot.blastp.completed")
     log:
-        os.path.join(DATABASE_DIR,"collate_blastp_swissprot.log")
+        os.path.join(cluster_logs_dir,"collate_blastp_swissprot.log")
     threads: 1
     params:
         cwd = OUTPUT,
@@ -293,7 +290,7 @@ rule collate_blastp_trembl:
         output = os.path.join(OUTPUT,"query-vs-trembl.blastp.tblr"),
         completed = os.path.join(OUTPUT,"query-vs-trembl.blastp.completed")
     log:
-        os.path.join(DATABASE_DIR,"collate_blastp_trembl.log")
+        os.path.join(cluster_logs_dir,"collate_blastp_trembl.log")
     threads: 1
     params:
         cwd = OUTPUT,
@@ -313,7 +310,7 @@ rule collate_interproscan:
         output = os.path.join(OUTPUT,"query-vs-interproscan.tsv"),
         completed = os.path.join(OUTPUT,"query-vs-interproscan.completed")
     log:
-        os.path.join(DATABASE_DIR,"collate_interproscan.log")
+        os.path.join(cluster_logs_dir,"collate_interproscan.log")
     threads: 1
     params:
         cwd = OUTPUT,
@@ -357,7 +354,7 @@ if no_reference:
             output = os.path.join(AHRD_DIR,"chunk_{sample}","ahrd_output.csv"),
             completed = os.path.join(AHRD_DIR,"chunk_{sample}","ahrd_output.completed")
         log:
-            os.path.join(AHRD_DIR,"chunk_{sample}","ahrd.log")
+            os.path.join(cluster_logs_dir,"ahrd.chunk_{sample}.log")
         threads: 1
         params:
             cwd = os.path.join(AHRD_DIR,"chunk_{sample}"),
@@ -415,7 +412,7 @@ else:
             output = os.path.join(AHRD_DIR,"chunk_{sample}","ahrd_output.csv"),
             completed = os.path.join(AHRD_DIR,"chunk_{sample}","ahrd_output.completed")
         log:
-            os.path.join(AHRD_DIR,"chunk_{sample}","ahrd.log")
+            os.path.join(cluster_logs_dir,"ahrd.chunk_{sample}.log")
         threads: 1
         params:
             cwd = os.path.join(AHRD_DIR,"chunk_{sample}"),
@@ -449,7 +446,7 @@ rule collate_ahrd:
         output = os.path.join(OUTPUT,"ahrd_output.csv"),
         completed = os.path.join(OUTPUT,"ahrd_output.completed")
     log:
-        os.path.join(AHRD_DIR,"collate_ahrd.log")
+        os.path.join(cluster_logs_dir,"collate_ahrd.log")
     threads: 1
     params:
         cwd = OUTPUT,
