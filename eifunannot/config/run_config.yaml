@@ -31,12 +31,12 @@ databases:
 #####
 # AHRD specific resources
 #####
-blacklist_descline: /ei/software/testing/ahrd/3.3.3/src/AHRD-3.3.3/test/resources/blacklist_descline.txt
-filter_descline_sprot: /ei/software/testing/ahrd/3.3.3/src/AHRD-3.3.3/test/resources/filter_descline_sprot.txt
-filter_descline_trembl: /ei/software/testing/ahrd/3.3.3/src/AHRD-3.3.3/test/resources/filter_descline_trembl.txt
-filter_descline_tair: /ei/software/testing/ahrd/3.3.3/src/AHRD-3.3.3/test/resources/filter_descline_tair.txt
-blacklist_token: /ei/software/testing/ahrd/3.3.3/src/AHRD-3.3.3/test/resources/blacklist_token.txt
-interpro_dtd: /ei/software/testing/ahrd/3.3.3/src/AHRD-3.3.3/interpro.dtd
+blacklist_descline: /ei/cb/common/Databases/ahrd/3.3.3/src/AHRD-3.3.3/test/resources/blacklist_descline.txt
+filter_descline_sprot: /ei/cb/common/Databases/ahrd/3.3.3/src/AHRD-3.3.3/test/resources/filter_descline_sprot.txt
+filter_descline_trembl: /ei/cb/common/Databases/ahrd/3.3.3/src/AHRD-3.3.3/test/resources/filter_descline_trembl.txt
+filter_descline_tair: /ei/cb/common/Databases/ahrd/3.3.3/src/AHRD-3.3.3/test/resources/filter_descline_tair.txt
+blacklist_token: /ei/cb/common/Databases/ahrd/3.3.3/src/AHRD-3.3.3/test/resources/blacklist_token.txt
+interpro_dtd: /ei/cb/common/Databases/ahrd/3.3.3/src/AHRD-3.3.3/interpro.dtd
 # external data
 # Download the interproscan release specific datatabases
 # When we install new version of interproscan (current interproscan-5.22.61) we need to update both the GOA and interpro.xml files
