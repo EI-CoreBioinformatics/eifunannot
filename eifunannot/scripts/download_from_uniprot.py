@@ -38,6 +38,7 @@ import re
 import requests
 from requests.adapters import HTTPAdapter, Retry
 from datetime import datetime
+import logging
 
 # get script name
 script = os.path.basename(sys.argv[0])
@@ -50,6 +51,9 @@ session = requests.Session()
 session.mount("https://", HTTPAdapter(max_retries=retries))
 
 date_fmt = datetime.now().strftime("%d_%m_%y_%H%M")
+
+FORMAT = "# %(asctime)s %(message)s"
+logging.basicConfig(format=FORMAT, level="INFO")
 
 
 class DownloadFromUniprot:
@@ -87,15 +91,18 @@ class DownloadFromUniprot:
         self.taxon_name = args.taxon_name
         self.taxon_id = args.taxon_id
         self.format = args.format
+        self.exclude_taxon_id = args.exclude_taxon_id
+        self.filter_database = args.filter_database
+        if self.filter_database:
+            logging.info(
+                "Change download '--format' to 'dat' since '--filter_database' option is enabled"
+            )
+            self.format = "dat"
         self.size = args.size
         self.progress = args.progress
 
     #  valid searches
-    def download_from_uniprot(self, review_list, output):
-        if self.format == "dat":
-            url = f"https://rest.uniprot.org/uniprotkb/search?query=reviewed:{review_list}+AND+taxonomy_id:{self.taxon_id}&format=txt&size={self.size}"
-        else:
-            url = f"https://rest.uniprot.org/uniprotkb/search?query=reviewed:{review_list}+AND+taxonomy_id:{self.taxon_id}&format={self.format}&size={self.size}"
+    def download_from_uniprot(self, url, output):
         progress = 0
         with open(output, "w") as f:
             for batch, total in DownloadFromUniprot.get_batch(url):
@@ -113,11 +120,20 @@ class DownloadFromUniprot:
 
     def run(self):
         for review_list in ["true", "false"]:
+            # Uniprot Advanced: Share: Generate URI for API
+            # https://rest.uniprot.org/uniprotkb/search?compressed=true&format=fasta&query=((taxonomy_id:3701)+NOT+(taxonomy_id:3702))+AND+(reviewed:true)&size=500
+            url = f"https://rest.uniprot.org/uniprotkb/search?query=(reviewed:{review_list})+AND+((taxonomy_id:{self.taxon_id})"
+
+            if self.exclude_taxon_id:
+                url += f"+NOT+(taxonomy_id:{self.exclude_taxon_id})"
+
             if self.format == "dat":
-                # +AND+taxonomy_name:{self.taxon_name}
-                url = f"https://rest.uniprot.org/uniprotkb/search?query=reviewed:{review_list}+AND+taxonomy_id:{self.taxon_id}&format=txt&size={self.size}"
+                url += ")&format=txt"
             else:
-                url = f"https://rest.uniprot.org/uniprotkb/search?query=reviewed:{review_list}+AND+taxonomy_id:{self.taxon_id}&format={self.format}&size={self.size}"
+                url += f")&format={self.format}"
+
+            url += f"&size={self.size}"
+
             (
                 total,
                 release,
@@ -140,8 +156,8 @@ class DownloadFromUniprot:
                 f"# Downloading {self.taxon_name}({self.taxon_id}) {database} {total} entries UniProt Release {release} (UniProt Release Date:{release_date}) to file '{output}' ... ",
                 end="",
             )
-            self.download_from_uniprot(review_list, output)
-            print(f"done!")
+            self.download_from_uniprot(url, output)
+            print("done!")
 
 
 def main():
@@ -187,6 +203,15 @@ def main():
         choices=choices,
         default="fasta",
         help="Choose one of the output file format (default: %(default)s)",
+    )
+    parser.add_argument(
+        "--exclude_taxon_id",
+        help="Provide UniProt Taxon ID you want to exclude. Get it from UniProt first and use it here NOT from NCBI taxonomy ID",
+    )
+    parser.add_argument(
+        "--filter_database",
+        action="store_true",
+        help="Filter the database to remove incomplete sequences. If enabled the format of download will be in 'dat' format and output a 'fasta' file (default: %(default)s)",
     )
     parser.add_argument(
         "--size",
