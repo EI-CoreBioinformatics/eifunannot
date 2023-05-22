@@ -2,9 +2,10 @@
     "__default__": {
         "time": "7-00:00:00",
         "c": 1,
-        "J": "gk.{rule}",
+        "J": "eifunannot.{rule}",
         "o": "logs/cluster/{rule}.log",
-        "partition": "ei-cb"
+        "partition": "ei-cb",
+        "exclude": "t256n17"
     },
     "makeblastdb": {
         "c": 1,
@@ -21,28 +22,29 @@
     "blastx": {
         "c": 4,
         "mem": 20480,
-        "J": "gk.{rule}.{wildcards.protein}.{wildcards.sample}",
+        "J": "eifunannot.{rule}.{wildcards.protein}.{wildcards.sample}",
         "o": "logs/cluster/{rule}.{wildcards.protein}.{wildcards.sample}.log",
         "partition": "ei-medium"
     },
     "blastp": {
         "c": 4,
         "mem": 20480,
-        "J": "gk.{rule}.{wildcards.protein}.{wildcards.sample}",
+        "J": "eifunannot.{rule}.{wildcards.protein}.{wildcards.sample}",
         "o": "logs/cluster/{rule}.{wildcards.protein}.{wildcards.sample}.log",
         "partition": "ei-medium"
     },
     "interproscan_5_22_61": {
         "c": 4,
         "mem": 30720,
-        "J": "gk.{rule}.{wildcards.sample}",
+        "J": "eifunannot.{rule}.{wildcards.sample}",
         "o": "logs/cluster/{rule}.{wildcards.sample}.log",
-        "partition": "ei-medium"
+        "partition": "ei-medium,ei-long",
+        "exclude": "t256n[5-10,16-19],e512n[21-31,33-68]"
     },
     "ahrd": {
         "c": 1,
         "mem": 10240,
-        "J": "gk.{rule}.{wildcards.sample}",
+        "J": "eifunannot.{rule}.{wildcards.sample}",
         "o": "logs/cluster/{rule}.{wildcards.sample}.log",
         "partition": "ei-medium"
     },

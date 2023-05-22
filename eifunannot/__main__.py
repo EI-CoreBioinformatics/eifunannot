@@ -95,7 +95,6 @@ The commands are:
 
     # eifunannot configure setup
     def configure(self):
-
         parser = argparse.ArgumentParser(
             description=f"EI FunAnnot version {__version__} - configure",
             formatter_class=RawTextHelpFormatter,
@@ -146,7 +145,6 @@ The commands are:
 
     # eifunannot run setup
     def run(self):
-
         parser = argparse.ArgumentParser(
             description=f"EI FunAnnot version {__version__} - run",
             formatter_class=RawTextHelpFormatter,
@@ -223,7 +221,7 @@ The commands are:
             # sys.exit(1)
 
         # run AHRD pipeline
-        print(f"Running eifunannot run..")
+        print("Running eifunannot run..")
         EiFunAnnotAHRD.run_ahrd(
             output, no_reference, config, ahrd_config, hpc_config, dry_run, jobs
         )
@@ -238,30 +236,23 @@ The commands are:
             # print(snakemake_file)
             # sys.exit(1)
             cmd = (
-                "snakemake --snakefile "
-                + snakemake_file
-                + " --configfile "
-                + config
-                + " --config ahrd_config="
-                + ahrd_config
-                + " --cluster-config "
-                + hpc_config
-                + " -np"
+                f"snakemake --snakefile {snakemake_file}"
+                + f" --configfile {config}"
+                + f" --config ahrd_config={ahrd_config}"
+                + f" --cluster-config {hpc_config}"
+                + " -np --reason"
+                + f" --jobs {str(jobs)}"
+                + " --cluster ' sbatch -p {cluster.partition} -c {cluster.c} --mem={cluster.mem} -J {cluster.J} --exclude={cluster.exclude}'"
             )
         else:
             cmd = (
-                "snakemake --latency-wait 120 --snakefile "
-                + snakemake_file
-                + " --configfile "
-                + config
-                + " --config ahrd_config="
-                + ahrd_config
-                + " --cluster-config "
-                + hpc_config
-                + " --printshellcmds"
-                + " --jobs "
-                + str(jobs)
-                + ' --cluster " sbatch -p {cluster.partition} -c {cluster.c} --mem {cluster.mem} -J {cluster.J} -o {cluster.o}"'
+                f"snakemake  --snakefile {snakemake_file}"
+                + f" --configfile {config}"
+                + f" --config ahrd_config={ahrd_config}"
+                + f" --cluster-config {hpc_config}"
+                + " --latency-wait 120 --printshellcmds --reason"
+                + f" --jobs {str(jobs)}"
+                + ' --cluster " sbatch -p {cluster.partition} -c {cluster.c} --mem {cluster.mem} -J {cluster.J} -o {cluster.o} --exclude={cluster.exclude}"'
             )
         p = subprocess.Popen(
             cmd, shell=True, stdout=subprocess.PIPE, universal_newlines=True
