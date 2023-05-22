@@ -64,6 +64,7 @@ setup(
             "generate_ahrd_reference_fasta_from_ncbi=eifunannot.scripts.generate_ahrd_reference_fasta_from_ncbi:main",
             "generate_ahrd_reference_fasta_from_ensembl=eifunannot.scripts.generate_ahrd_reference_fasta_from_ensembl:main",
             "generate_ahrd_reference_fasta_from_file=eifunannot.scripts.generate_ahrd_reference_fasta_from_file:main",
+            "download_from_uniprot=eifunannot.scripts.download_from_uniprot:main",
         ]
     },
     package_data={
@@ -73,4 +74,3 @@ setup(
     },
     include_package_data=True,
 )
-
