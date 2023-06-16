@@ -1,9 +1,23 @@
 # eifunannot
 eifunannot - EI AHRD Functional Annotation Pipeline
 
+eifunannot is a wrapper around [Automated Assignment of Human Readable Descriptions (AHRD)](https://github.com/groupschoof/AHRD) designed for execution in an HPC cluster (SLURM) environment.
+
 Gemy Kaithakottil, David Swarbreck
 
 ## Getting Started
+
+### Prerequisites
+
+```Console
+snakemake>=5.4.0
+blast v2.6.0
+prinseq v0.20.3
+interproscan v5.22.61
+ahrd v3.3.3
+```
+ 
+### Installation
 
 First obtain the source code using
 
