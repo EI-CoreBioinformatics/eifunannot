@@ -67,6 +67,7 @@ setup(
             "download_from_uniprot=eifunannot.scripts.download_from_uniprot:main",
             "create_functional_annotation=eifunannot.scripts.create_functional_annotation:main",
             "parse_blast=eifunannot.scripts.parse_blast:main",
+            "add_description_to_annotation_GFF3=eifunannot.scripts.add_description_to_annotation_GFF3:main",
         ]
     },
     package_data={
