@@ -65,6 +65,8 @@ setup(
             "generate_ahrd_reference_fasta_from_ensembl=eifunannot.scripts.generate_ahrd_reference_fasta_from_ensembl:main",
             "generate_ahrd_reference_fasta_from_file=eifunannot.scripts.generate_ahrd_reference_fasta_from_file:main",
             "download_from_uniprot=eifunannot.scripts.download_from_uniprot:main",
+            "create_functional_annotation=eifunannot.scripts.create_functional_annotation:main",
+            "parse_blast=eifunannot.scripts.parse_blast:main",
         ]
     },
     package_data={
