@@ -250,7 +250,7 @@ The commands are:
                 + f" --configfile {config}"
                 + f" --config ahrd_config={ahrd_config}"
                 + f" --cluster-config {hpc_config}"
-                + " --latency-wait 120 --printshellcmds --reason"
+                + " --latency-wait 120 --printshellcmds --reason --keep-going"
                 + f" --jobs {str(jobs)}"
                 + ' --cluster " sbatch -p {cluster.partition} -c {cluster.c} --mem {cluster.mem} -J {cluster.J} -o {cluster.o} --exclude={cluster.exclude}"'
             )
