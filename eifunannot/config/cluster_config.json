@@ -1,57 +1,49 @@
 {
     "__default__": {
-        "time": "7-00:00:00",
         "c": 1,
         "J": "eifunannot.{rule}",
-        "o": "logs/cluster/{rule}.log",
-        "partition": "ei-cb",
+        "o": "logs/cluster/{rule}.%N.%j.log",
+        "partition": "ei-medium,ei-long",
         "exclude": "t256n17"
     },
     "makeblastdb": {
         "c": 1,
         "mem": 10240,
-        "o": "logs/cluster/{rule}.log",
-        "partition": "ei-cb"
+        "o": "logs/cluster/{rule}.%N.%j.log"
     },
     "split_fasta": {
         "c": 4,
         "mem": 10240,
-        "o": "logs/cluster/{rule}.log",
-        "partition": "ei-cb"
+        "o": "logs/cluster/{rule}.%N.%j.log"
     },
     "blastx": {
         "c": 4,
         "mem": 20480,
         "J": "eifunannot.{rule}.{wildcards.protein}.{wildcards.sample}",
-        "o": "logs/cluster/{rule}.{wildcards.protein}.{wildcards.sample}.log",
-        "partition": "ei-medium"
+        "o": "logs/cluster/{rule}.{wildcards.protein}.{wildcards.sample}.%N.%j.log"
     },
     "blastp": {
         "c": 4,
         "mem": 20480,
         "J": "eifunannot.{rule}.{wildcards.protein}.{wildcards.sample}",
-        "o": "logs/cluster/{rule}.{wildcards.protein}.{wildcards.sample}.log",
-        "partition": "ei-medium"
+        "o": "logs/cluster/{rule}.{wildcards.protein}.{wildcards.sample}.%N.%j.log"
     },
     "interproscan_5_22_61": {
         "c": 4,
         "mem": 30720,
         "J": "eifunannot.{rule}.{wildcards.sample}",
-        "o": "logs/cluster/{rule}.{wildcards.sample}.log",
-        "partition": "ei-medium,ei-long",
-        "exclude": "t256n[5-10,16-19],e512n[21-31,33-68]"
+        "o": "logs/cluster/{rule}.{wildcards.sample}.%N.%j.log",
+        "partition": "ei-medium,ei-long --constraint=centos7"
     },
     "ahrd": {
         "c": 1,
         "mem": 10240,
         "J": "eifunannot.{rule}.{wildcards.sample}",
-        "o": "logs/cluster/{rule}.{wildcards.sample}.log",
-        "partition": "ei-medium"
+        "o": "logs/cluster/{rule}.{wildcards.sample}.%N.%j.log"
     },
     "collate_ahrd": {
         "c": 1,
         "mem": 10240,
-        "o": "logs/cluster/{rule}.log",
-        "partition": "ei-medium"
+        "o": "logs/cluster/{rule}.%N.%j.log"
     }
 }
