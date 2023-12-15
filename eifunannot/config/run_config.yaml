@@ -18,7 +18,7 @@ chunk_size: 500
 
 # if no reference is available please remove the 'reference:' line under 'databases:' from this run_config.yaml file and also remove the 'tair:' section (lines 28 to 37) under 'blast_dbs:' from the AHRD config file - ahrd_example_input_go_prediction.generic.yaml
 databases:
-    reference: /ei/cb/common/References/Protein/Uniprot/30Jan2019/TAIR10_pep_20101214_updated.fasta
+    reference: /ei/public/databases/eicorebioinformatics/eifunannot/reference/TAIR10_pep_20101214_updated.fasta
     swissprot: /ei/cb/common/References/Protein/Uniprot/30Jan2019/UniProt_swissprot_Viridiplantae_33090_40216_2019_12_11.fasta
     trembl: /ei/cb/common/References/Protein/Uniprot/30Jan2019/UniProt_trembl_Viridiplantae_33090_9314135_2019_12_11.fasta
 ## END CONFIGURATION ##
@@ -31,12 +31,12 @@ databases:
 #####
 # AHRD specific resources
 #####
-blacklist_descline: /ei/cb/common/Databases/ahrd/3.3.3/src/AHRD-3.3.3/test/resources/blacklist_descline.txt
-filter_descline_sprot: /ei/cb/common/Databases/ahrd/3.3.3/src/AHRD-3.3.3/test/resources/filter_descline_sprot.txt
-filter_descline_trembl: /ei/cb/common/Databases/ahrd/3.3.3/src/AHRD-3.3.3/test/resources/filter_descline_trembl.txt
-filter_descline_tair: /ei/cb/common/Databases/ahrd/3.3.3/src/AHRD-3.3.3/test/resources/filter_descline_tair.txt
-blacklist_token: /ei/cb/common/Databases/ahrd/3.3.3/src/AHRD-3.3.3/test/resources/blacklist_token.txt
-interpro_dtd: /ei/cb/common/Databases/ahrd/3.3.3/src/AHRD-3.3.3/interpro.dtd
+blacklist_descline: /ei/public/databases/eicorebioinformatics/eifunannot/AHRD-3.3.3/test/resources/blacklist_descline.txt
+filter_descline_sprot: /ei/public/databases/eicorebioinformatics/eifunannot/AHRD-3.3.3/test/resources/filter_descline_sprot.txt
+filter_descline_trembl: /ei/public/databases/eicorebioinformatics/eifunannot/AHRD-3.3.3/test/resources/filter_descline_trembl.txt
+filter_descline_tair: /ei/public/databases/eicorebioinformatics/eifunannot/AHRD-3.3.3/test/resources/filter_descline_tair.txt
+blacklist_token: /ei/public/databases/eicorebioinformatics/eifunannot/AHRD-3.3.3/test/resources/blacklist_token.txt
+interpro_dtd: /ei/public/databases/eicorebioinformatics/eifunannot/AHRD-3.3.3/interpro.dtd
 # external data
 # Download the interproscan release specific datatabases
 # When we install new version of interproscan (current interproscan-5.22.61) we need to update both the GOA and interpro.xml files
@@ -45,8 +45,8 @@ interpro_dtd: /ei/cb/common/Databases/ahrd/3.3.3/src/AHRD-3.3.3/interpro.dtd
 # - get the version of interproscan I have used
 # $ wget -N ftp://ftp.ebi.ac.uk/pub/databases/interpro/61.0/interpro.xml.gz
 # $ gunzip interpro.xml.gz
-gene_ontology_result: /ei/cb/common/Databases/ahrd/3.3.3/27Nov2018/goa_uniprot_all.gaf
-interpro_database: /ei/cb/common/Databases/ahrd/3.3.3/27Nov2018/interpro.xml
+gene_ontology_result: /ei/public/databases/eicorebioinformatics/eifunannot/reference/27Nov2018/goa_uniprot_all.gaf
+interpro_database: /ei/public/databases/eicorebioinformatics/eifunannot/reference/27Nov2018/interpro.xml
 #####
 # END AHRD specific resources
 #####
