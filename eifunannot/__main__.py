@@ -178,7 +178,7 @@ The commands are:
         parser.add_argument(
             "--jobs",
             type=int,
-            default=1,
+            default=200,
             nargs="?",
             help="Maximum number of jobs to execute at any one time (default: %(default)s)",
         )
