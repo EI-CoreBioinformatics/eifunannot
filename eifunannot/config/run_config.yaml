@@ -71,7 +71,7 @@ load_parameters:
     # for blastp ignore options: -db, -outfmt, -num_threads, -query, -out
     blast: "-evalue 1e-5"
     # for interproscan ignore option: -i, -b, -f
-    interproscan: "-dp -goterms -iprlookup -pa -appl TIGRFAM,SFLD,Phobius,SignalP_GRAM_NEGATIVE,SUPERFAMILY,PANTHER,Gene3D,Hamap,ProSiteProfiles,Coils,SMART,CDD,PRINTS,PIRSF,ProSitePatterns,SignalP_EUK,Pfam,ProDom,MobiDBLite,SignalP_GRAM_POSITIVE"
+    interproscan: "-dp -goterms -iprlookup -pa -appl TIGRFAM,Phobius,SignalP_GRAM_NEGATIVE,SUPERFAMILY,PANTHER,Gene3D,Hamap,ProSiteProfiles,Coils,SMART,CDD,PRINTS,PIRSF,ProSitePatterns,SignalP_EUK,Pfam,ProDom,MobiDBLite,SignalP_GRAM_POSITIVE"
 
 #####
 # END of source tools and parameters
