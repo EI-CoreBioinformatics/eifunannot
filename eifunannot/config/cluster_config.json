@@ -4,7 +4,7 @@
         "J": "eifunannot.{rule}",
         "o": "logs/cluster/{rule}.%N.%j.log",
         "partition": "ei-medium,ei-long",
-        "exclude": "t256n17"
+        "exclude": "e512n76"
     },
     "makeblastdb": {
         "c": 1,
@@ -32,8 +32,7 @@
         "c": 4,
         "mem": 30720,
         "J": "eifunannot.{rule}.{wildcards.sample}",
-        "o": "logs/cluster/{rule}.{wildcards.sample}.%N.%j.log",
-        "partition": "ei-medium,ei-long --constraint=centos7"
+        "o": "logs/cluster/{rule}.{wildcards.sample}.%N.%j.log"
     },
     "ahrd": {
         "c": 1,
