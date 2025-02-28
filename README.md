@@ -1,4 +1,6 @@
 # eifunannot
+[![DOI](https://zenodo.org/badge/258555573.svg)](https://doi.org/10.5281/zenodo.12624176)
+
 eifunannot - EI AHRD Functional Annotation Pipeline
 
 eifunannot is a wrapper around [Automated Assignment of Human Readable Descriptions (AHRD)](https://github.com/groupschoof/AHRD) designed for execution in an HPC cluster (SLURM) environment.
